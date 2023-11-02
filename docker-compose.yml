@@ -1,0 +1,64 @@
+version: '3'
+services:
+  bot:
+    image: bot:latest
+    deploy:
+      mode: replicated
+      replicas: 5
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /app/wait-for-it.sh -q -s -h postgres -p 5432 -- /app/entrypoint.sh
+    restart: always
+    volumes:
+      - /opt/help_data/static:/app/static
+    networks:
+      - layer
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public.pem:/etc/nginx/public.pem:ro
+      - ./private.key:/etc/nginx/private.key:ro
+      - /opt/help_data/static:/app/static:ro
+      - /opt/help_data/media:/app/media:ro
+    ports:
+      - "443:443"
+      - "8080:80"
+    depends_on:
+      - bot
+    networks:
+      - layer
+  postgres:
+    image: postgres:13.4
+    env_file:
+      - .env
+    volumes:
+      - /opt/help_data/postgres:/var/lib/postgresql/data
+    logging:
+      driver: syslog
+      options:
+        tag: postgres
+        syslog-facility: local6
+    networks:
+      - layer
+  redis:
+    image: redis:6
+    volumes:
+      - /opt/help_data/redis:/data
+    logging:
+      driver: syslog
+      options:
+        tag: redis
+        syslog-facility: local6
+    networks:
+      - layer
+networks:
+  layer:
+    driver: bridge
