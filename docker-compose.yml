@@ -29,7 +29,7 @@ services:
       - /opt/help_data/static:/app/static:ro
       - /opt/help_data/media:/app/media:ro
     ports:
-      - "443:443"
+      # - "443:443"
       - "80:80"
     depends_on:
       - bot
