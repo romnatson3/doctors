@@ -1,0 +1,142 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-03 15:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: models.py:17
+msgid "Specialities"
+msgstr "Специальности"
+
+#: models.py:18 models.py:20 models.py:98
+msgid "Speciality"
+msgstr "Специальность"
+
+#: models.py:28
+msgid "Polyclinics"
+msgstr "Поликлиники"
+
+#: models.py:29 models.py:100
+msgid "Polyclinic"
+msgstr "Поликлиника"
+
+#: models.py:31 models.py:43 models.py:54
+msgid "Name"
+msgstr "Имя"
+
+#: models.py:32
+msgid "Address"
+msgstr "Адрес"
+
+#: models.py:40
+msgid "Districts"
+msgstr "Районы"
+
+#: models.py:41 models.py:101
+msgid "District"
+msgstr "Район"
+
+#: models.py:51
+msgid "Positions"
+msgstr "Позиции"
+
+#: models.py:52 models.py:99
+msgid "Position"
+msgstr "Позиция"
+
+#: models.py:62
+msgid "Schedules"
+msgstr "Расписания"
+
+#: models.py:63 models.py:104
+msgid "Schedule"
+msgstr "Расписание"
+
+#: models.py:66
+msgid "Monday"
+msgstr "Понедельник"
+
+#: models.py:67
+msgid "Tuesday"
+msgstr "Вторник"
+
+#: models.py:68
+msgid "Wednesday"
+msgstr "Среда"
+
+#: models.py:69
+msgid "Thursday"
+msgstr "Четверг"
+
+#: models.py:70
+msgid "Friday"
+msgstr "Пятница"
+
+#: models.py:71
+msgid "Saturday"
+msgstr "Суббота"
+
+#: models.py:72
+msgid "Sunday"
+msgstr "Воскресенье"
+
+#: models.py:75
+msgid "Day of week"
+msgstr "День недели"
+
+#: models.py:76
+msgid "Start time"
+msgstr "Время начала"
+
+#: models.py:77
+msgid "End time"
+msgstr "Время окончания"
+
+#: models.py:90
+msgid "Doctors"
+msgstr "Врачи"
+
+#: models.py:91
+msgid "Doctor"
+msgstr "Врач"
+
+#: models.py:93
+msgid "First name"
+msgstr "Имя"
+
+#: models.py:94
+msgid "Last name"
+msgstr "Фамилия"
+
+#: models.py:95
+msgid "Paternal name"
+msgstr "Отчество"
+
+#: models.py:96
+msgid "Phone number"
+msgstr "Номер телефона"
+
+#: models.py:97
+msgid "Photo"
+msgstr "Фото"
+
+#: models.py:102
+msgid "Experience"
+msgstr "Опыт"
+
+#: models.py:103
+msgid "Cost"
+msgstr "Стоимость"

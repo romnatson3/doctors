@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class BaseModel(models.Model):
@@ -10,34 +12,12 @@ class BaseModel(models.Model):
     updated = models.DateTimeField('Updated', blank=False, auto_now=True)
 
 
-class Doctor(BaseModel):
-    class Meta:
-        verbose_name_plural = 'Doctors'
-        verbose_name = 'Doctor'
-
-    first_name = models.CharField(max_length=50, verbose_name='First name')
-    last_name = models.CharField(max_length=50, verbose_name='Last name')
-    paternal_name = models.CharField(max_length=50, verbose_name='Paternal name')
-    phone = models.CharField(max_length=15, verbose_name='Phone number')
-    image = models.ImageField(upload_to='images/', default='images/None.png', verbose_name='Photo', blank=True)
-    speciality = models.ForeignKey('Speciality', on_delete=models.CASCADE, verbose_name='Speciality')
-    position = models.ForeignKey('Position', on_delete=models.CASCADE, verbose_name='Position')
-    polyclinic = models.ManyToManyField('Polyclinic', verbose_name='Polyclinic')
-    district = models.ManyToManyField('District', verbose_name='District')
-    experience = models.IntegerField(verbose_name='Experience')
-    cost = models.FloatField(verbose_name='Cost')
-    schedule = models.ManyToManyField('Schedule', verbose_name='Schedule')
-
-    def __str__(self):
-        return f'{self.last_name} {self.first_name} {self.paternal_name}'
-
-
 class Speciality(BaseModel):
     class Meta:
-        verbose_name_plural = 'Specialities'
-        verbose_name = 'Speciality'
+        verbose_name_plural = _('Specialities')
+        verbose_name = _('Speciality')
 
-    name = models.CharField(max_length=50, verbose_name='Speciality')
+    name = models.CharField(_('Speciality'), max_length=50)
 
     def __str__(self):
         return self.name
@@ -45,11 +25,11 @@ class Speciality(BaseModel):
 
 class Polyclinic(BaseModel):
     class Meta:
-        verbose_name_plural = 'Polyclinics'
-        verbose_name = 'Polyclinic'
+        verbose_name_plural = _('Polyclinics')
+        verbose_name = _('Polyclinic')
 
-    name = models.CharField(max_length=50, verbose_name='Name')
-    address = models.CharField(max_length=100, verbose_name='Address')
+    name = models.CharField(_('Name'), max_length=50)
+    address = models.CharField(_('Address'), max_length=100)
 
     def __str__(self):
         return self.name
@@ -57,10 +37,10 @@ class Polyclinic(BaseModel):
 
 class District(BaseModel):
     class Meta:
-        verbose_name_plural = 'Districts'
-        verbose_name = 'District'
+        verbose_name_plural = _('Districts')
+        verbose_name = _('District')
 
-    name = models.CharField(max_length=50, verbose_name='Name')
+    name = models.CharField(_('Name'), max_length=50)
 
     def __str__(self):
         return self.name
@@ -68,10 +48,10 @@ class District(BaseModel):
 
 class Position(BaseModel):
     class Meta:
-        verbose_name_plural = 'Positions'
-        verbose_name = 'Position'
+        verbose_name_plural = _('Positions')
+        verbose_name = _('Position')
 
-    name = models.CharField(max_length=50, verbose_name='Name')
+    name = models.CharField(_('Name'), max_length=50)
 
     def __str__(self):
         return self.name
@@ -79,23 +59,23 @@ class Position(BaseModel):
 
 class Schedule(BaseModel):
     class Meta:
-        verbose_name_plural = 'Schedules'
-        verbose_name = 'Schedule'
+        verbose_name_plural = _('Schedules')
+        verbose_name = _('Schedule')
 
     DAY_OF_WEEK = (
-        ('1', 'Monday'),
-        ('2', 'Tuesday'),
-        ('3', 'Wednesday'),
-        ('4', 'Thursday'),
-        ('5', 'Friday'),
-        ('6', 'Saturday'),
-        ('7', 'Sunday')
+        ('1', _('Monday')),
+        ('2', _('Tuesday')),
+        ('3', _('Wednesday')),
+        ('4', _('Thursday')),
+        ('5', _('Friday')),
+        ('6', _('Saturday')),
+        ('7', _('Sunday'))
     )
 
-    day_of_week = models.CharField(max_length=1, choices=DAY_OF_WEEK, verbose_name='Day of week')
-    start_time = models.TimeField(verbose_name='Start time')
-    end_time = models.TimeField(verbose_name='End time')
-    polyclinic = models.ForeignKey('Polyclinic', on_delete=models.CASCADE, verbose_name='Polyclinic')
+    day_of_week = models.CharField(_('Day of week'), max_length=1, choices=DAY_OF_WEEK)
+    start_time = models.TimeField(_('Start time'))
+    end_time = models.TimeField(_('End time'))
+    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE)
 
     @property
     def day_of_week_name(self):
@@ -103,3 +83,25 @@ class Schedule(BaseModel):
 
     def __str__(self):
         return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic.name}'
+
+
+class Doctor(BaseModel):
+    class Meta:
+        verbose_name_plural = _('Doctors')
+        verbose_name = _('Doctor')
+
+    first_name = models.CharField(_('First name'), max_length=50)
+    last_name = models.CharField(_('Last name'), max_length=50)
+    paternal_name = models.CharField(_('Paternal name'), max_length=50)
+    phone = models.CharField(_('Phone number'), max_length=15)
+    image = models.ImageField(_('Photo'), upload_to='images/', default='images/None.png', blank=True)
+    speciality = models.ForeignKey(Speciality, on_delete=models.CASCADE, verbose_name=_('Speciality'))
+    position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name=_('Position'))
+    polyclinic = models.ManyToManyField(Polyclinic, related_name='polyclinic', verbose_name=_('Polyclinic'))
+    district = models.ManyToManyField(District, related_name='district', verbose_name=_('District'))
+    experience = models.IntegerField(_('Experience'), default=0, validators=[MinValueValidator(1), MaxValueValidator(100)])
+    cost = models.FloatField(_('Cost'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
+    schedule = models.ManyToManyField(Schedule, related_name='schedule', verbose_name=_('Schedule'))
+
+    def __str__(self):
+        return f'{self.last_name} {self.first_name} {self.paternal_name}'
