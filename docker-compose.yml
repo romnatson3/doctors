@@ -4,7 +4,7 @@ services:
     image: bot:latest
     deploy:
       mode: replicated
-      replicas: 5
+      replicas: 1
     build:
       context: .
       dockerfile: Dockerfile
@@ -30,7 +30,7 @@ services:
       - /opt/help_data/media:/app/media:ro
     ports:
       - "443:443"
-      - "8080:80"
+      - "80:80"
     depends_on:
       - bot
     networks:
