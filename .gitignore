@@ -3,3 +3,5 @@ __pycache__/
 local.sh
 static/
 readme.txt
+celerybeat-schedule
+test.py

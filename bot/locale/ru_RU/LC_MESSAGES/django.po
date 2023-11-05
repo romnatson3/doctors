@@ -51,11 +51,11 @@ msgstr "Район"
 
 #: models.py:51
 msgid "Positions"
-msgstr "Позиции"
+msgstr "Специализации"
 
 #: models.py:52 models.py:99
 msgid "Position"
-msgstr "Позиция"
+msgstr "Специализация"
 
 #: models.py:62
 msgid "Schedules"

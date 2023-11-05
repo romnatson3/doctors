@@ -12,6 +12,7 @@ services:
     restart: always
     volumes:
       - /opt/help_data/static:/app/static
+      - /opt/help_data/media:/app/media
     networks:
       - layer
     env_file:
@@ -29,7 +30,7 @@ services:
       - /opt/help_data/static:/app/static:ro
       - /opt/help_data/media:/app/media:ro
     ports:
-      # - "443:443"
+      - "443:443"
       - "80:80"
     depends_on:
       - bot
@@ -49,7 +50,8 @@ services:
     networks:
       - layer
   redis:
-    image: redis:6
+    image: redis:latest
+    entrypoint: redis-server --appendonly yes --maxmemory-policy volatile-ttl --aof-use-rdb-preamble yes --save "" --maxclients 65000
     volumes:
       - /opt/help_data/redis:/data
     logging:
@@ -59,6 +61,56 @@ services:
         syslog-facility: local6
     networks:
       - layer
+  beat:
+    image: bot:latest
+    entrypoint: celery -A app beat -l INFO
+    restart: always
+    networks:
+      - layer
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  sender:
+    image: bot:latest
+    entrypoint: celery -A app worker -l INFO -Q sender
+    deploy:
+      mode: replicated
+      replicas: 1
+    restart: always
+    volumes:
+      - /opt/help_data/media:/app/media
+    networks:
+      - layer
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  schedule:
+    image: bot:latest
+    entrypoint: celery -A app worker -l INFO -Q schedule
+    deploy:
+      mode: replicated
+      replicas: 1
+    restart: always
+    networks:
+      - layer
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  flower:
+    image: bot:latest
+    entrypoint: celery -A app flower -l INFO --host=0.0.0.0 --port=5555
+    restart: always
+    networks:
+      - layer
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
 networks:
   layer:
     driver: bridge
