@@ -151,8 +151,13 @@ CACHES = {
     }
 }
 
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Kiev'
+
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+TELEGRAM_CHANNEL_ID = os.environ.get('TELEGRAM_CHANNEL_ID')
 X_TELEGRAM_BOT_API_SECRET_TOKEN = os.environ.get('X_TELEGRAM_BOT_API_SECRET_TOKEN')
 APP_API_ID = os.environ.get('APP_API_ID')
 APP_API_HASH = os.environ.get('APP_API_HASH')
@@ -162,14 +167,14 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            'format': '[%(asctime)s] %(levelname)s %(name)s.%(funcName)s:%(lineno)s %(message)s',
+            'format': "[%(asctime)s] %(levelname)s %(name)s %(message)s",
             'datefmt': "%d.%m.%Y %H:%M:%S"
 
         },
     },
     'handlers': {
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'default',
         }
@@ -177,7 +182,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': True,
         }
     },

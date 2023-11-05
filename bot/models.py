@@ -103,5 +103,26 @@ class Doctor(BaseModel):
     cost = models.FloatField(_('Cost'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
     schedule = models.ManyToManyField(Schedule, related_name='schedule', verbose_name=_('Schedule'))
 
-    def __str__(self):
+    @property
+    def full_name(self):
         return f'{self.last_name} {self.first_name} {self.paternal_name}'
+
+    def __str__(self):
+        return self.full_name
+
+
+class User(BaseModel):
+    class Meta:
+        verbose_name_plural = _('Users')
+        verbose_name = _('User')
+
+    id = models.BigIntegerField(_('ID'), primary_key=True)
+    username = models.CharField(_('Username'), max_length=50, blank=True, null=True)
+    first_name = models.CharField(_('First name'), max_length=50, blank=True, null=True)
+    last_name = models.CharField(_('Last name'), max_length=50, blank=True, null=True)
+    phone = models.CharField(_('Phone number'), max_length=15, blank=True, null=True)
+    is_bot = models.BooleanField(_('Is bot'), default=False)
+    is_deleted = models.BooleanField(_('Is deleted'), default=False)
+
+    def __str__(self):
+        return f'{self.id} {self.username}'

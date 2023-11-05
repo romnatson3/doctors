@@ -1,5 +1,19 @@
 import requests
+import logging
 from django.conf import settings
+from bot.exception import ResponseException, TelegramException
+from math import ceil
+
+
+class Empty():
+    def __bool__(self):
+        return False
+
+    def __getattr__(self, name):
+        return Empty()
+
+    def __repr__(self):
+        return 'False'
 
 
 class DotAccessibleDict(dict):
@@ -14,21 +28,33 @@ class DotAccessibleDict(dict):
             self[key] = value
 
     def __getattr__(self, name):
-        self.__dict__.get(name)
+        return Empty()
 
 
-class ResponseException(Exception):
-    pass
+def batched(l, num):
+    i = 0
+    ls = []
+    for _ in range(ceil(len(l) / num)):
+        ls.append(l[i:i + num])
+        i += num
+    return ls
 
 
-def send_messages(method, **data):
+def send_message(method, **data):
     url = f'https://api.telegram.org/bot{settings.TELEGRAM_TOKEN}/{method}'
-    response = requests.post(url, data=data)
+    if 'photo' in data:
+        file = data.pop('photo')
+        with open(file, 'rb') as f:
+            response = requests.post(url, data=data, files={'photo': f})
+    else:
+        response = requests.post(url, data=data)
     if response.status_code == 200:
         response_data = DotAccessibleDict(response.json())
         if response_data.ok:
             return response_data.result
         else:
-            raise ResponseException(response_data.description)
+            logging.error(f'user_id={data.get("chat_id")} {response_data}')
+            raise TelegramException(f'user_id={data.get("chat_id")} {response_data}')
     else:
-        raise ResponseException(response.status_code)
+        logging.error(f'user_id={data.get("chat_id")} status={response.status_code} {response.text}')
+        raise ResponseException(f'user_id={data.get("chat_id")} status={response.status_code} {response.text}')
