@@ -124,16 +124,29 @@ def send_message_specialities(id):
         text=F('name'),
         callback_data=Concat(
             Value('{"type":"speciality","data":"'),
-            Value('speciality_'),
             Cast(F('id'), output_field=CharField()),
             Value('"}')
         )
-    ).values('text', 'callback_data')
+    ).values('text', 'callback_data').order_by('name')
     text = f'<b>{texts.my_doctor}</b>'
-    inline_keyboard = batched(specialities, 3)
+    inline_keyboard = batched(specialities, 2)
     reply_markup = json.dumps({'inline_keyboard': inline_keyboard})
     send_message('sendMessage', chat_id=id, parse_mode='HTML', text=text, reply_markup=reply_markup)
     logger.info(f'Send message about specialities to {id=} successfully')
+
+
+@app.task()
+def send_message_clinic_or_private(id, message_id, previous_callback_data):
+    clinic_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},1'})
+    private_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},2'})
+    inline_keyboard = [[
+        {'text': texts.clinic, 'callback_data': clinic_callback_data},
+        {'text': texts.private, 'callback_data': private_callback_data}
+    ]]
+    reply_markup = json.dumps({'inline_keyboard': inline_keyboard})
+    text = f'<b>{texts.clinic_or_private}</b>'
+    send_message('editMessageText', chat_id=id, message_id=message_id, reply_markup=reply_markup, text=text, parse_mode='HTML')
+    logger.info(f'Send message about clinic or private to {id=} successfully')
 
 
 @app.task()
@@ -143,7 +156,7 @@ def send_message_districts(id, message_id, previous_callback_data):
         callback_data=Concat(
             Value('{"type":"district","data":"'),
             Value(f'{previous_callback_data},'),
-            Value('district_'), Cast(F('id'), output_field=CharField()),
+            Cast(F('id'), output_field=CharField()),
             Value('"}')
         )
     ).values('text', 'callback_data')
@@ -155,23 +168,24 @@ def send_message_districts(id, message_id, previous_callback_data):
 
 
 @app.task()
-def send_message_doctor(id, doctor_id):
-    doctor = (Doctor.objects
-              .select_related('speciality', 'position')
-              .prefetch_related('polyclinic', 'schedule')).get(id=doctor_id)
-    fullname = f'<b>{doctor.full_name}\n</b>'
-    speciality = f'{doctor.speciality._meta.verbose_name}: <i>{doctor.speciality.name}\n</i>'
-    position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
-    polyclinics = f'{doctor.polyclinic.model._meta.verbose_name_plural}:\n'
-    for i in doctor.polyclinic.all():
-        polyclinics += f'<i>{i.name} ({i.address})</i>\n'
-    experience = f'{doctor._meta.get_field("experience").verbose_name}: <i>{doctor.experience} г.</i>\n'
-    cost = f'{doctor._meta.get_field("cost").verbose_name}: <i>{doctor.cost} грн.</i>\n'
-    schedules = f'{doctor.schedule.model._meta.verbose_name_plural}:\n'
-    for i in doctor.schedule.all():
-        schedules += f'<i>{i.day_of_week_name} {i.start_time}-{i.end_time} - {i.polyclinic.name}</i>\n'
-    caption = fullname + speciality + position + polyclinics + experience + cost + schedules
-    callback_data = json.dumps({'type': 'doctor', 'data': doctor_id})
-    reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
-    send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=doctor.image.path)
-    logger.info(f'Send message about doctor to {id=} successfully')
+def send_message_doctor(id, doctors_id):
+    for doctor_id in doctors_id:
+        doctor = (Doctor.objects
+                  .select_related('speciality', 'position')
+                  .prefetch_related('polyclinic', 'schedule')).get(id=doctor_id)
+        fullname = f'<b>{doctor.full_name}\n</b>'
+        speciality = f'{doctor.speciality._meta.verbose_name}: <i>{doctor.speciality.name}\n</i>'
+        position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
+        polyclinics = f'{doctor.polyclinic.model._meta.verbose_name_plural}:\n'
+        for i in doctor.polyclinic.all():
+            polyclinics += f'<i>{i.name} ({i.address})</i>\n'
+        experience = f'{doctor._meta.get_field("experience").verbose_name}: <i>{doctor.experience} лет</i>\n'
+        cost = f'{doctor._meta.get_field("cost").verbose_name}: <i>{doctor.cost} грн.</i>\n'
+        schedules = f'{doctor.schedule.model._meta.verbose_name}:\n'
+        for i in doctor.schedule.all():
+            schedules += f'<i>{i.day_of_week_name} {i.start_time}-{i.end_time} - {i.polyclinic.name}</i>\n'
+        caption = fullname + speciality + position + polyclinics + experience + cost + schedules
+        callback_data = json.dumps({'type': 'contacts', 'data': doctor_id})
+        reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
+        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=doctor.image.path)
+        logger.info(f'Send message about doctor to {id=} successfully')

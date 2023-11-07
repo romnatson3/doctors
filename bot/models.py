@@ -18,6 +18,11 @@ class Speciality(BaseModel):
         verbose_name = _('Speciality')
 
     name = models.CharField(_('Speciality'), max_length=50)
+    rating_1 = models.ForeignKey('Doctor', related_name='doctor_1', on_delete=models.CASCADE, verbose_name=_('Rating 1'), blank=True, null=True)
+    rating_2 = models.ForeignKey('Doctor', related_name='doctor_2', on_delete=models.CASCADE, verbose_name=_('Rating 2'), blank=True, null=True)
+    rating_3 = models.ForeignKey('Doctor', related_name='doctor_3', on_delete=models.CASCADE, verbose_name=_('Rating 3'), blank=True, null=True)
+    rating_4 = models.ForeignKey('Doctor', related_name='doctor_4', on_delete=models.CASCADE, verbose_name=_('Rating 4'), blank=True, null=True)
+    rating_5 = models.ForeignKey('Doctor', related_name='doctor_5', on_delete=models.CASCADE, verbose_name=_('Rating 5'), blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -95,7 +100,7 @@ class Doctor(BaseModel):
     paternal_name = models.CharField(_('Paternal name'), max_length=50)
     phone = models.CharField(_('Phone number'), max_length=15)
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/None.png', blank=True)
-    speciality = models.ForeignKey(Speciality, on_delete=models.CASCADE, verbose_name=_('Speciality'))
+    speciality = models.ForeignKey(Speciality, related_name='speciality', on_delete=models.CASCADE, verbose_name=_('Speciality'))
     position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name=_('Position'))
     polyclinic = models.ManyToManyField(Polyclinic, related_name='polyclinic', verbose_name=_('Polyclinic'))
     district = models.ManyToManyField(District, related_name='district', verbose_name=_('District'))

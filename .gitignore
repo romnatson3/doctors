@@ -5,3 +5,4 @@ static/
 readme.txt
 celerybeat-schedule
 test.py
+media/
