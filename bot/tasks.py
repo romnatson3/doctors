@@ -15,7 +15,7 @@ from app.celery import app
 from bot.models import User
 from bot.misc import send_message, batched
 from bot import texts
-from bot.models import Speciality, District, Doctor
+from bot.models import Speciality, District, Doctor, Polyclinic
 
 
 logger = get_task_logger(__name__)
@@ -137,8 +137,8 @@ def send_message_specialities(id):
 
 @app.task()
 def send_message_clinic_or_private(id, message_id, previous_callback_data):
-    clinic_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},1'})
-    private_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},2'})
+    clinic_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},clinic'})
+    private_callback_data = json.dumps({'type': 'clinic_or_private', 'data': f'{previous_callback_data},private'})
     inline_keyboard = [[
         {'text': texts.clinic, 'callback_data': clinic_callback_data},
         {'text': texts.private, 'callback_data': private_callback_data}
@@ -169,10 +169,12 @@ def send_message_districts(id, message_id, previous_callback_data):
 
 @app.task()
 def send_message_doctor(id, doctors_id):
-    for doctor_id in doctors_id:
-        doctor = (Doctor.objects
-                  .select_related('speciality', 'position')
-                  .prefetch_related('polyclinic', 'schedule')).get(id=doctor_id)
+    doctors = list(Doctor.objects
+                   .select_related('speciality', 'position')
+                   .prefetch_related('polyclinic', 'schedule')
+                   .filter(id__in=doctors_id).all())
+    doctors.sort(key=lambda x: doctors_id.index(x.id))
+    for doctor in doctors:
         fullname = f'<b>{doctor.full_name}\n</b>'
         speciality = f'{doctor.speciality._meta.verbose_name}: <i>{doctor.speciality.name}\n</i>'
         position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
@@ -185,7 +187,25 @@ def send_message_doctor(id, doctors_id):
         for i in doctor.schedule.all():
             schedules += f'<i>{i.day_of_week_name} {i.start_time}-{i.end_time} - {i.polyclinic.name}</i>\n'
         caption = fullname + speciality + position + polyclinics + experience + cost + schedules
-        callback_data = json.dumps({'type': 'contacts', 'data': doctor_id})
+        callback_data = json.dumps({'type': 'doctor_contacts', 'data': doctor.id})
         reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
         send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=doctor.image.path)
         logger.info(f'Send message about doctor to {id=} successfully')
+
+
+@app.task()
+def send_message_polyclinic(id, polyclinics_id):
+    polyclinics = list(Polyclinic.objects.select_related('district')
+                       .prefetch_related('phone', 'speciality', 'position')
+                       .filter(id__in=polyclinics_id).all())
+    for polyclinic in polyclinics:
+        name = f'<b>{polyclinic.name}\n</b>'
+        address = f'{polyclinic._meta.get_field("address").verbose_name}: <i>{polyclinic.address}</i>\n'
+        url = polyclinic.site_url if polyclinic.site_url else '-'
+        site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
+        work_time = f'{texts.work_time}: <i>{polyclinic.work_time_start} - {polyclinic.work_time_end}</i>\n'
+        caption = name + address + site + work_time
+        callback_data = json.dumps({'type': 'clinic_contacts', 'data': polyclinic.id})
+        reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
+        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=polyclinic.image.path)
+        logger.info(f'Send message about polyclinic to {id=} successfully')

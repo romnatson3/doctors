@@ -5,8 +5,9 @@ import logging
 import json
 from bot.misc import DotAccessibleDict
 from bot.tasks import send_message_to_new_user, send_message_specialities, \
-    send_message_districts, send_message_doctor, send_message_clinic_or_private
-from bot.models import User, Doctor, Speciality
+    send_message_districts, send_message_doctor, send_message_clinic_or_private, \
+    send_message_polyclinic
+from bot.models import User, Doctor, Speciality, Polyclinic
 from bot.misc import send_message
 from bot import texts
 from django.db.models import Q
@@ -52,9 +53,11 @@ def telegram_webhook(request):
                 send_message_districts.delay(message.from_user.id, message.message.message_id, data['data'])
 
             if data.get('type') == 'district':
-                speciality_id, clinic_or_private, district_id = map(lambda x: int(x), data['data'].split(','))
+                speciality_id, clinic_or_private, district_id = data['data'].split(',')
+                speciality_id = int(speciality_id)
+                district_id = int(district_id)
 
-                if clinic_or_private == 2:
+                if clinic_or_private == 'private':
                     doctors_first = []
                     other_doctors = []
                     speciality = (Speciality.objects.select_related(
@@ -89,12 +92,28 @@ def telegram_webhook(request):
                         doctors_id = [i.id for i in doctors_first + list(other_doctors)]
                         send_message_doctor.delay(message.from_user.id, doctors_id)
 
-                elif clinic_or_private == 1:
-                    pass
+                elif clinic_or_private == 'clinic':
+                    polyclinics_id = []
+                    polyclinics = Polyclinic.objects.prefetch_related('speciality').filter(district__id=district_id).all()
+                    if polyclinics:
+                        for polyclinic in polyclinics:
+                            if list(filter(lambda x: x == speciality_id, [i.id for i in polyclinic.speciality.all()])):
+                                polyclinics_id.append(polyclinic.id)
 
-            if data.get('type') == 'contacts':
+                    if polyclinics_id:
+                        send_message_polyclinic(message.from_user.id, polyclinics_id)
+                    else:
+                        text = f'<i>{texts.no_doctors}</i>'
+                        send_message('sendMessage', chat_id=message.from_user.id, parse_mode='HTML', text=text)
+
+            if data.get('type') == 'doctor_contacts':
                 doctor = Doctor.objects.get(id=data['data'])
                 send_message('sendContact', chat_id=message.from_user.id, phone_number=doctor.phone, first_name=doctor.full_name)
+
+            if data.get('type') == 'clinic_contacts':
+                polyclinic = Polyclinic.objects.prefetch_related('phone').get(id=data['data'])
+                for phone in polyclinic.phone.all():
+                    send_message('sendContact', chat_id=message.from_user.id, phone_number=phone.number, first_name=polyclinic.name)
 
         return HttpResponse(status=200)
     return HttpResponse(status=400)
