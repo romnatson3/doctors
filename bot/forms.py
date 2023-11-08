@@ -1,5 +1,7 @@
 from django import forms
-from bot.models import Doctor, Speciality
+from bot.models import Doctor, Speciality, Polyclinic, Phone
+from django.contrib.admin.widgets import AutocompleteSelectMultiple
+from django.contrib import admin
 
 
 class SpecialityForm(forms.ModelForm):
@@ -15,4 +17,26 @@ class SpecialityForm(forms.ModelForm):
 
     class Meta:
         model = Speciality
+        fields = '__all__'
+
+
+class PolyclinicForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        queryset = Phone.objects.filter(name=instance).all()
+        self.fields['phone'].queryset = queryset
+
+    # phone = forms.ModelMultipleChoiceField(
+    #     queryset=Phone.objects.all(),
+    #     required=True,
+    #     widget=AutocompleteSelectMultiple(
+    #         Polyclinic.phone.field,
+    #         admin.site,
+    #         attrs={'style': 'width: 500px'}
+    #     )
+    # )
+
+    class Meta:
+        model = Polyclinic
         fields = '__all__'

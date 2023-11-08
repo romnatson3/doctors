@@ -14,3 +14,5 @@ clinic = 'КЛИНИКА'
 private = 'ЧАСТНЫЙ ПРИЕМ'
 
 clinic_or_private = 'Сделайте выбор'
+
+work_time = 'Рабочее время'

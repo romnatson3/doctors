@@ -35,9 +35,29 @@ class Polyclinic(BaseModel):
 
     name = models.CharField(_('Name'), max_length=50)
     address = models.CharField(_('Address'), max_length=100)
+    phone = models.ManyToManyField('Phone', related_name='phone', verbose_name=_('Phones'))
+    position = models.ManyToManyField('Position', related_name='position_set', verbose_name=_('Position'), blank=True, null=True)
+    speciality = models.ManyToManyField('Speciality', related_name='speciality_set', verbose_name=_('Speciality'))
+    site_url = models.URLField(_('Site URL'), blank=True, null=True)
+    image = models.ImageField(_('Photo'), upload_to='images/', default='images/NoneClinic.jpg', blank=True)
+    work_time_start = models.TimeField(_('Work time start'), blank=True, null=True)
+    work_time_end = models.TimeField(_('Work time end'), blank=True, null=True)
+    district = models.ForeignKey('District', on_delete=models.CASCADE, related_name='district_set', verbose_name=_('District'), blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} - {self.address}'
+
+
+class Phone(BaseModel):
+    class Meta:
+        verbose_name_plural = _('Phones')
+        verbose_name = _('Phone')
+
+    number = models.CharField(_('Number'), max_length=15, unique=True)
+    name = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.number} - {self.name}'
 
 
 class District(BaseModel):
