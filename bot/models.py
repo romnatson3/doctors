@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from bot import texts
+from django.contrib import admin
 
 
 class BaseModel(models.Model):
@@ -43,6 +45,13 @@ class Polyclinic(BaseModel):
     work_time_start = models.TimeField(_('Work time start'), blank=True, null=True)
     work_time_end = models.TimeField(_('Work time end'), blank=True, null=True)
     district = models.ForeignKey('District', on_delete=models.CASCADE, related_name='district_set', verbose_name=_('District'), blank=True, null=True)
+
+    @admin.display(description=_('Work time'))
+    def work_time(self):
+        if not (self.work_time_start and self.work_time_end):
+            return texts.around_the_clock
+        else:
+            return f'{self.work_time_start} - {self.work_time_end}'
 
     def __str__(self):
         return f'{self.name} - {self.address}'
