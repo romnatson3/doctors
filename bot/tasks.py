@@ -203,7 +203,7 @@ def send_message_polyclinic(id, polyclinics_id):
         address = f'{polyclinic._meta.get_field("address").verbose_name}: <i>{polyclinic.address}</i>\n'
         url = polyclinic.site_url if polyclinic.site_url else '-'
         site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
-        work_time = f'{texts.work_time}: <i>{polyclinic.work_time_start} - {polyclinic.work_time_end}</i>\n'
+        work_time = f'{polyclinic.work_time.short_description}: <i>{polyclinic.work_time()}</i>\n'
         caption = name + address + site + work_time
         callback_data = json.dumps({'type': 'clinic_contacts', 'data': polyclinic.id})
         reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})

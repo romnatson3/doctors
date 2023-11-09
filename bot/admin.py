@@ -40,7 +40,7 @@ class SpecialityAdmin(admin.ModelAdmin):
 class PolyclinicAdmin(admin.ModelAdmin):
     form = PolyclinicForm
     autocomplete_fields = ('position', 'speciality', 'phone')
-    list_display = ('name', 'address', 'district', 'site', 'phones', 'image_tag')
+    list_display = ('name', 'address', 'district', 'site', 'phones', 'work_time', 'image_tag')
     search_fields = ('name', 'address')
     fields = ('name', 'address', 'site_url', 'phone', 'image_tag', 'image', 'district',
               'speciality', 'work_time_start', 'work_time_end')

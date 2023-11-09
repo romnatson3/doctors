@@ -15,4 +15,4 @@ private = 'ЧАСТНЫЙ ПРИЕМ'
 
 clinic_or_private = 'Сделайте выбор'
 
-work_time = 'Рабочее время'
+around_the_clock = 'Круглосуточно'
