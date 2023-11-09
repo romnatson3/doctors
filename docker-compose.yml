@@ -1,5 +1,6 @@
 version: '3'
 services:
+######################## admin
   bot:
     image: bot:latest
     deploy:
@@ -20,6 +21,7 @@ services:
     depends_on:
       - postgres
       - redis
+######################## nginx
   nginx:
     image: nginx:latest
     restart: always
@@ -36,8 +38,9 @@ services:
       - bot
     networks:
       - layer
+######################## postgres
   postgres:
-    image: postgres:13.4
+    image: postgres:latest
     env_file:
       - .env
     volumes:
@@ -49,6 +52,7 @@ services:
         syslog-facility: local6
     networks:
       - layer
+######################## redis
   redis:
     image: redis:latest
     entrypoint: redis-server --appendonly yes --maxmemory-policy volatile-ttl --aof-use-rdb-preamble yes --save "" --maxclients 65000
@@ -61,22 +65,27 @@ services:
         syslog-facility: local6
     networks:
       - layer
+######################## beat
   beat:
     image: bot:latest
-    entrypoint: celery -A app beat -l INFO
+    entrypoint: celery -A app beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler 
     restart: always
+    depends_on:
+      - redis
+      - postgres
+      - schedule
+      - sender
     networks:
       - layer
     env_file:
       - .env
-    depends_on:
-      - redis
+######################## queue sender
   sender:
     image: bot:latest
-    entrypoint: celery -A app worker -l INFO -Q sender
+    entrypoint: celery -A app worker -c 4 -l INFO -Q sender
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 5
     restart: always
     volumes:
       - /opt/help_data/media:/app/media
@@ -86,6 +95,8 @@ services:
       - .env
     depends_on:
       - redis
+      - postgres
+######################## queue schedule
   schedule:
     image: bot:latest
     entrypoint: celery -A app worker -l INFO -Q schedule
@@ -99,6 +110,8 @@ services:
       - .env
     depends_on:
       - redis
+      - postgres
+######################## flower
   flower:
     image: bot:latest
     entrypoint: celery -A app flower -l INFO --host=0.0.0.0 --port=5555
