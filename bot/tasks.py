@@ -62,7 +62,7 @@ def get_users_from_channel(self):
                          last_name=user.last_name, phone=user.phone, is_bot=user.bot)
                 )
 
-            if users[user.id]:
+            if users.get(user.id) is False:
                 enable_users_id.append(user.id)
                 logger.info(f'Enable user @{user.username}, id={user.id}')
 
