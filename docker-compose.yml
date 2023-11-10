@@ -65,65 +65,36 @@ services:
         syslog-facility: local6
     networks:
       - layer
-######################## beat
-  beat:
-    image: bot:latest
-    entrypoint: celery -A app beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler 
-    restart: always
-    depends_on:
-      - redis
-      - postgres
-      - schedule
-      - sender
-    networks:
-      - layer
-    env_file:
-      - .env
 ######################## queue sender
   sender:
     image: bot:latest
-    entrypoint: celery -A app worker -c 4 -l INFO -Q sender
+    entrypoint: celery -A app worker -c 2 -l INFO -Q sender
     deploy:
       mode: replicated
       replicas: 5
     restart: always
+    depends_on:
+      - redis
+      - postgres
     volumes:
       - /opt/help_data/media:/app/media
-    networks:
-      - layer
     env_file:
       - .env
-    depends_on:
-      - redis
-      - postgres
-######################## queue schedule
-  schedule:
-    image: bot:latest
-    entrypoint: celery -A app worker -l INFO -Q schedule
-    deploy:
-      mode: replicated
-      replicas: 1
-    restart: always
     networks:
       - layer
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - postgres
 ######################## flower
   flower:
     image: bot:latest
     entrypoint: celery -A app flower -l INFO --host=0.0.0.0 --port=5555
     restart: always
-    networks:
-      - layer
     env_file:
       - .env
     ports:
       - "5555:5555"
     depends_on:
       - redis
+    networks:
+      - layer
 networks:
   layer:
     driver: bridge

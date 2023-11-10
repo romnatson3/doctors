@@ -28,8 +28,6 @@ DEBUG = bool(int(os.environ.get('DJANGO_DEBUG', 0)))
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://65.108.110.146:8080']
-
 
 # Application definition
 
@@ -41,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bot',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -163,6 +160,8 @@ X_TELEGRAM_BOT_API_SECRET_TOKEN = os.environ.get('X_TELEGRAM_BOT_API_SECRET_TOKE
 APP_API_ID = os.environ.get('APP_API_ID')
 APP_API_HASH = os.environ.get('APP_API_HASH')
 
+CHANNEL_URL = 'https://t.me/doktorodessa'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -175,8 +174,8 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            # 'level': 'INFO',
-            'level': 'DEBUG',
+            'level': 'INFO',
+            # 'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'default',
         }
@@ -184,8 +183,8 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console'],
-            # 'level': 'INFO',
-            'level': 'DEBUG',
+            'level': 'INFO',
+            # 'level': 'DEBUG',
             'propagate': True,
         }
     },
