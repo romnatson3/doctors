@@ -1,5 +1,5 @@
 from django import forms
-from bot.models import Doctor, Speciality, Polyclinic, Phone
+from bot.models import Doctor, Speciality, Polyclinic, Phone, Address, Schedule
 from django.contrib.admin.widgets import AutocompleteSelectMultiple
 from django.contrib import admin
 
@@ -24,19 +24,39 @@ class PolyclinicForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = kwargs.get('instance')
-        queryset = Phone.objects.filter(name=instance).all()
+        queryset = Phone.objects.filter(polyclinic=instance).all()
         self.fields['phone'].queryset = queryset
-
-    # phone = forms.ModelMultipleChoiceField(
-    #     queryset=Phone.objects.all(),
-    #     required=True,
-    #     widget=AutocompleteSelectMultiple(
-    #         Polyclinic.phone.field,
-    #         admin.site,
-    #         attrs={'style': 'width: 500px'}
-    #     )
-    # )
+        queryset = Address.objects.filter(polyclinic=instance).all()
+        self.fields['address'].queryset = queryset
 
     class Meta:
         model = Polyclinic
+        fields = '__all__'
+
+
+class ScheduleForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        queryset = Address.objects.filter(polyclinic=instance.polyclinic).all()
+        self.fields['address'].queryset = queryset
+
+    class Meta:
+        model = Schedule
+        fields = '__all__'
+
+
+class DoctorForm(forms.ModelForm):
+    schedule = forms.ModelMultipleChoiceField(
+        queryset=Schedule.objects.all(),
+        required=True,
+        widget=AutocompleteSelectMultiple(
+            Doctor.schedule.field,
+            admin.site,
+            attrs={'style': 'width: 700px'}
+        )
+    )
+
+    class Meta:
+        model = Doctor
         fields = '__all__'

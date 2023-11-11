@@ -36,9 +36,9 @@ class Polyclinic(BaseModel):
         verbose_name = _('Polyclinic')
 
     name = models.CharField(_('Name'), max_length=50)
-    address = models.CharField(_('Address'), max_length=100)
+    address = models.ManyToManyField('Address', related_name='address_set', verbose_name=_('Addresses'))
     phone = models.ManyToManyField('Phone', related_name='phone', verbose_name=_('Phones'))
-    position = models.ManyToManyField('Position', related_name='position_set', verbose_name=_('Position'), blank=True, null=True)
+    position = models.ManyToManyField('Position', related_name='position_set', verbose_name=_('Position'))
     speciality = models.ManyToManyField('Speciality', related_name='speciality_set', verbose_name=_('Speciality'))
     site_url = models.URLField(_('Site URL'), blank=True, null=True)
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/NoneClinic.jpg', blank=True)
@@ -54,7 +54,7 @@ class Polyclinic(BaseModel):
             return f'{self.work_time_start} - {self.work_time_end}'
 
     def __str__(self):
-        return f'{self.name} - {self.address}'
+        return self.name
 
 
 class Phone(BaseModel):
@@ -63,10 +63,22 @@ class Phone(BaseModel):
         verbose_name = _('Phone number')
 
     number = models.CharField(_('Number'), max_length=15, unique=True)
-    name = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)
+    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)
 
     def __str__(self):
-        return f'{self.number} - {self.name}'
+        return f'{self.number} - {self.polyclinic}'
+
+
+class Address(BaseModel):
+    class Meta:
+        verbose_name_plural = _('Addresses')
+        verbose_name = _('Address')
+
+    name = models.CharField(_('Address'), max_length=100)
+    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_address', verbose_name=_('Polyclinic'), blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class District(BaseModel):
@@ -109,14 +121,18 @@ class Schedule(BaseModel):
     day_of_week = models.CharField(_('Day of week'), max_length=1, choices=DAY_OF_WEEK)
     start_time = models.TimeField(_('Start time'))
     end_time = models.TimeField(_('End time'))
-    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE)
+    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, verbose_name=_('Polyclinic'))
+    address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_schedule', verbose_name=_('Address'), blank=True, null=True)
 
     @property
     def day_of_week_name(self):
         return list(filter(lambda x: x[0] == self.day_of_week, self.DAY_OF_WEEK))[0][1]
 
     def __str__(self):
-        return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic.name}'
+        if self.address:
+            return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic} - {self.address}'
+        else:
+            return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic}'
 
 
 class Doctor(BaseModel):
