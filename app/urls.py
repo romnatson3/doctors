@@ -22,7 +22,8 @@ from bot.views import telegram_webhook
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('NGrC1ucbxQkKhdsiVVFYdhEFcVsTskBL8cNv7OY', telegram_webhook),
+    # path('NGrC1ucbxQkKhdsiVVFYdhEFcVsTskBL8cNv7OY', telegram_webhook),
+    path('telegram_bot_webhook', telegram_webhook),
 ]
 
 
