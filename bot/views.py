@@ -35,7 +35,7 @@ def telegram_webhook(request):
                     logging.info(f'Create new user: {user.id} {user.username} {user.first_name} {user.last_name}')
                 send_message_to_new_user.delay(message.from_user.id)
             elif message.text == 'Мой доктор':
-                send_message_specialities.delay(message.from_user.id)
+                send_message_clinic_or_private.delay(message.from_user.id)
 
         if body.callback_query:
             message = body.callback_query
@@ -48,13 +48,13 @@ def telegram_webhook(request):
                 return HttpResponse(status=200)
 
             if data.get('type') == 'speciality':
-                send_message_clinic_or_private.delay(message.from_user.id, message.message.message_id, data['data'])
-
-            if data.get('type') == 'clinic_or_private':
                 send_message_districts.delay(message.from_user.id, message.message.message_id, data['data'])
 
+            if data.get('type') == 'clinic_or_private':
+                send_message_specialities.delay(message.from_user.id, message.message.message_id, data['data'])
+
             if data.get('type') == 'district':
-                speciality_id, clinic_or_private, district_id = data['data'].split(',')
+                clinic_or_private, speciality_id, district_id = data['data'].split(',')
                 speciality_id = int(speciality_id)
                 district_id = int(district_id)
 
@@ -89,9 +89,8 @@ def telegram_webhook(request):
                         text = f'<i>{texts.no_doctors}</i>'
                         send_message('sendMessage', chat_id=message.from_user.id, parse_mode='HTML', text=text)
                     else:
-                        send_message('deleteMessage', chat_id=message.from_user.id, message_id=message.message.message_id)
                         doctors_id = [i.id for i in doctors_first + list(other_doctors)]
-                        send_message_doctor.delay(message.from_user.id, doctors_id)
+                        send_message_doctor.delay(message.from_user.id, message.message.message_id, doctors_id)
 
                 elif clinic_or_private == 'clinic':
                     polyclinics_id = []
@@ -102,19 +101,10 @@ def telegram_webhook(request):
                                 polyclinics_id.append(polyclinic.id)
 
                     if polyclinics_id:
-                        send_message_polyclinic.delay(message.from_user.id, polyclinics_id)
+                        send_message_polyclinic.delay(message.from_user.id, message.message.message_id, polyclinics_id)
                     else:
                         text = f'<i>{texts.no_doctors}</i>'
                         send_message('sendMessage', chat_id=message.from_user.id, parse_mode='HTML', text=text)
-
-            # if data.get('type') == 'doctor_contacts':
-            #     doctor = Doctor.objects.get(id=data['data'])
-            #     send_message('sendContact', chat_id=message.from_user.id, phone_number=doctor.phone, first_name=doctor.full_name)
-
-            # if data.get('type') == 'clinic_contacts':
-            #     polyclinic = Polyclinic.objects.prefetch_related('phone').get(id=data['data'])
-            #     for phone in polyclinic.phone.all():
-            #         send_message('sendContact', chat_id=message.from_user.id, phone_number=phone.number, first_name=polyclinic.name)
 
         return HttpResponse(status=200)
     return HttpResponse(status=400)

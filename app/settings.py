@@ -160,7 +160,8 @@ X_TELEGRAM_BOT_API_SECRET_TOKEN = os.environ.get('X_TELEGRAM_BOT_API_SECRET_TOKE
 APP_API_ID = os.environ.get('APP_API_ID')
 APP_API_HASH = os.environ.get('APP_API_HASH')
 
-CHANNEL_URL = 'https://t.me/doktorodessa'
+# CHANNEL_URL = 't.me/vsezdesodessa'
+CHANNEL_URL = 'https://t.me/+WiomAZm44N0yZTNi'
 
 LOGGING = {
     'version': 1,
