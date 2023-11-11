@@ -59,8 +59,8 @@ class Polyclinic(BaseModel):
 
 class Phone(BaseModel):
     class Meta:
-        verbose_name_plural = _('Phones')
-        verbose_name = _('Phone')
+        verbose_name_plural = _('Phone numbers')
+        verbose_name = _('Phone number')
 
     number = models.CharField(_('Number'), max_length=15, unique=True)
     name = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)

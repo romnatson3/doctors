@@ -15,10 +15,11 @@ from django.db.models import Q
 
 @csrf_exempt
 def telegram_webhook(request):
-    if request.method == 'POST' and request.headers.get('X-Telegram-Bot-Api-Secret-Token') == settings.X_TELEGRAM_BOT_API_SECRET_TOKEN:
+    # if request.method == 'POST' and request.headers.get('X-Telegram-Bot-Api-Secret-Token') == settings.X_TELEGRAM_BOT_API_SECRET_TOKEN:
+    if request.method == 'POST':
         body = json.loads(request.body)
         body = DotAccessibleDict(body)
-        logging.debug(body)
+        logging.info(f'\n{body}\n')
         # return HttpResponse(status=200)
         if body.message.text:
             message = body.message
@@ -101,19 +102,19 @@ def telegram_webhook(request):
                                 polyclinics_id.append(polyclinic.id)
 
                     if polyclinics_id:
-                        send_message_polyclinic(message.from_user.id, polyclinics_id)
+                        send_message_polyclinic.delay(message.from_user.id, polyclinics_id)
                     else:
                         text = f'<i>{texts.no_doctors}</i>'
                         send_message('sendMessage', chat_id=message.from_user.id, parse_mode='HTML', text=text)
 
-            if data.get('type') == 'doctor_contacts':
-                doctor = Doctor.objects.get(id=data['data'])
-                send_message('sendContact', chat_id=message.from_user.id, phone_number=doctor.phone, first_name=doctor.full_name)
+            # if data.get('type') == 'doctor_contacts':
+            #     doctor = Doctor.objects.get(id=data['data'])
+            #     send_message('sendContact', chat_id=message.from_user.id, phone_number=doctor.phone, first_name=doctor.full_name)
 
-            if data.get('type') == 'clinic_contacts':
-                polyclinic = Polyclinic.objects.prefetch_related('phone').get(id=data['data'])
-                for phone in polyclinic.phone.all():
-                    send_message('sendContact', chat_id=message.from_user.id, phone_number=phone.number, first_name=polyclinic.name)
+            # if data.get('type') == 'clinic_contacts':
+            #     polyclinic = Polyclinic.objects.prefetch_related('phone').get(id=data['data'])
+            #     for phone in polyclinic.phone.all():
+            #         send_message('sendContact', chat_id=message.from_user.id, phone_number=phone.number, first_name=polyclinic.name)
 
         return HttpResponse(status=200)
     return HttpResponse(status=400)

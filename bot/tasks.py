@@ -7,6 +7,7 @@ from app.celery import app
 from bot.misc import send_message, batched
 from bot import texts
 from bot.models import Speciality, District, Doctor, Polyclinic
+from time import sleep
 
 
 logger = get_task_logger(__name__)
@@ -89,10 +90,12 @@ def send_message_doctor(id, doctors_id):
         schedules = f'{doctor.schedule.model._meta.verbose_name}:\n'
         for i in doctor.schedule.all():
             schedules += f'<i>{i.day_of_week_name} {i.start_time}-{i.end_time} - {i.polyclinic.name}</i>\n'
-        caption = fullname + speciality + position + polyclinics + experience + cost + schedules
-        callback_data = json.dumps({'type': 'doctor_contacts', 'data': doctor.id})
-        reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
-        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=doctor.image.path)
+        phone = f'{doctor._meta.get_field("phone").verbose_name}:\n <i>{doctor.phone}</i>\n'
+        caption = fullname + speciality + position + polyclinics + experience + cost + schedules + phone
+        # callback_data = json.dumps({'type': 'doctor_contacts', 'data': doctor.id})
+        # reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
+        # send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=doctor.image.path)
+        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=doctor.image.path)
         logger.info(f'Send message about doctor to {id=} successfully')
 
 
@@ -107,8 +110,12 @@ def send_message_polyclinic(id, polyclinics_id):
         url = polyclinic.site_url if polyclinic.site_url else '-'
         site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
         work_time = f'{polyclinic.work_time.short_description}: <i>{polyclinic.work_time()}</i>\n'
-        caption = name + address + site + work_time
-        callback_data = json.dumps({'type': 'clinic_contacts', 'data': polyclinic.id})
-        reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
-        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=polyclinic.image.path)
+        phones = f'{polyclinic.phone.model._meta.verbose_name_plural}:\n'
+        for phone in polyclinic.phone.all():
+            phones += f'<i>{phone.number}</i>\n'
+        caption = name + address + site + work_time + phones
+        # callback_data = json.dumps({'type': 'clinic_contacts', 'data': polyclinic.id})
+        # reply_markup = json.dumps({'inline_keyboard': [[{'text': texts.get_contact, 'callback_data': callback_data}]]})
+        # send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, reply_markup=reply_markup, photo=polyclinic.image.path)
+        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=polyclinic.image.path)
         logger.info(f'Send message about polyclinic to {id=} successfully')
