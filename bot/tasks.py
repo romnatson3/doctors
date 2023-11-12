@@ -102,19 +102,22 @@ def send_message_doctor(id, message_id, doctors_id):
 def send_message_polyclinic(id, message_id, polyclinics_id):
     send_message('deleteMessage', chat_id=id, message_id=message_id)
     polyclinics = list(Polyclinic.objects.select_related('district')
-                       .prefetch_related('phone', 'speciality', 'position', 'address')
+                       .prefetch_related('speciality', 'position')
+                       # .prefetch_related('phone', 'speciality', 'position', 'address')
                        .filter(id__in=polyclinics_id).all())
     for polyclinic in polyclinics:
         name = f'<b>{polyclinic.name}\n</b>'
-        addresses = f'{polyclinic.address.model._meta.verbose_name_plural}:\n'
-        for address in polyclinic.address.all():
-            addresses += f'<i>{address.name}</i>\n'
-        url = polyclinic.site_url if polyclinic.site_url else '-'
+        addresses = f'{polyclinic._meta.get_field("address").verbose_name}:\n{polyclinic.address}\n'
+        # addresses = f'{polyclinic.address.model._meta.verbose_name_plural}:\n'
+        # for address in polyclinic.address.all():
+        #     addresses += f'<i>{address.name}</i>\n'
+        phones = f'{polyclinic._meta.get_field("phone").verbose_name}:\n{polyclinic.phone}\n'
+        # phones = f'{polyclinic.phone.model._meta.verbose_name_plural}:\n'
+        # for phone in polyclinic.phone.all():
+        #     phones += f'<i>{phone.number}</i>\n'
+        url = polyclinic.site_url if polyclinic.site_url else ''
         site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
         work_time = f'{polyclinic.work_time.short_description}: <i>{polyclinic.work_time()}</i>\n'
-        phones = f'{polyclinic.phone.model._meta.verbose_name_plural}:\n'
-        for phone in polyclinic.phone.all():
-            phones += f'<i>{phone.number}</i>\n'
         caption = name + addresses + site + work_time + phones
         send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=polyclinic.image.path)
         logger.info(f'Send message about polyclinic to {id=} successfully')

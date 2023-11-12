@@ -36,8 +36,10 @@ class Polyclinic(BaseModel):
         verbose_name = _('Polyclinic')
 
     name = models.CharField(_('Name'), max_length=50)
-    address = models.ManyToManyField('Address', related_name='address_set', verbose_name=_('Addresses'))
-    phone = models.ManyToManyField('Phone', related_name='phone', verbose_name=_('Phones'))
+    address = models.TextField(_('Address'), blank=True, null=True)
+    phone = models.TextField(_('Phone'), blank=True, null=True)
+    # address = models.ManyToManyField('Address', related_name='address_set', verbose_name=_('Addresses'))
+    # phone = models.ManyToManyField('Phone', related_name='phone', verbose_name=_('Phones'))
     position = models.ManyToManyField('Position', related_name='position_set', verbose_name=_('Position'))
     speciality = models.ManyToManyField('Speciality', related_name='speciality_set', verbose_name=_('Speciality'))
     site_url = models.URLField(_('Site URL'), blank=True, null=True)
@@ -62,7 +64,7 @@ class Phone(BaseModel):
         verbose_name_plural = _('Phone numbers')
         verbose_name = _('Phone number')
 
-    number = models.CharField(_('Number'), max_length=15, unique=True)
+    number = models.CharField(_('Number'), max_length=15)
     polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)
 
     def __str__(self):

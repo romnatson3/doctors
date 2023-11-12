@@ -39,26 +39,27 @@ class SpecialityAdmin(admin.ModelAdmin):
 
 @admin.register(Polyclinic)
 class PolyclinicAdmin(admin.ModelAdmin):
-    form = PolyclinicForm
-    autocomplete_fields = ('position', 'speciality', 'phone', 'address')
-    list_display = ('name', 'addresses', 'district', 'site', 'phones', 'work_time', 'image_tag')
+    # form = PolyclinicForm
+    autocomplete_fields = ('position', 'speciality')
+    # autocomplete_fields = ('position', 'speciality', 'phone', 'address')
+    list_display = ('name', 'address', 'district', 'site', 'phone', 'work_time', 'image_tag')
     search_fields = ('name', 'address')
     fields = ('name', 'address', 'site_url', 'phone', 'image_tag', 'image', 'district',
               'speciality', 'work_time_start', 'work_time_end')
     readonly_fields = ('image_tag',)
-    list_display_links = ('name', 'addresses')
+    list_display_links = ('name',)
 
     def image_tag(self, obj):
         return mark_safe(f'<img src="{obj.image.url}" width="50" height="50" />')
     image_tag.short_description = _('Photo')
 
-    def phones(self, obj):
-        if obj.phone.exists():
-            text = ', '.join([i.number for i in obj.phone.all()])
-            return text
-        else:
-            return '-'
-    phones.short_description = _('Phones')
+    # def phones(self, obj):
+    #     if obj.phone.exists():
+    #         text = ', '.join([i.number for i in obj.phone.all()])
+    #         return text
+    #     else:
+    #         return '-'
+    # phones.short_description = _('Phones')
 
     def site(self, obj):
         if obj.site_url:
@@ -67,43 +68,43 @@ class PolyclinicAdmin(admin.ModelAdmin):
             return '-'
     site.short_description = _('Site URL')
 
-    def addresses(self, obj):
-        if obj.address.exists():
-            text = ', '.join([i.name for i in obj.address.all()])
-            return text
-        else:
-            return '-'
-    addresses.short_description = _('Addresses')
+    # def addresses(self, obj):
+    #     if obj.address.exists():
+    #         text = ', '.join([i.name for i in obj.address.all()])
+    #         return text
+    #     else:
+    #         return '-'
+    # addresses.short_description = _('Addresses')
 
 
-@admin.register(Phone)
-class PhoneAdmin(admin.ModelAdmin):
-    list_display = ('number', 'polyclinic')
-    search_fields = ('number', 'polyclinic')
+# @admin.register(Phone)
+# class PhoneAdmin(admin.ModelAdmin):
+#     list_display = ('number', 'polyclinic')
+#     search_fields = ('number', 'polyclinic')
 
-    def get_search_results(self, request, queryset, search_term):
-        queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
-        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            result = re.search(r'(?<=polyclinic/)\d+(?=/change)', request.headers['Referer'])
-            if result:
-                polyclinic_id = int(result.group(0))
-                queryset = queryset.filter(polyclinic=polyclinic_id).order_by('-id')
-        return queryset, may_have_duplicates
+#     def get_search_results(self, request, queryset, search_term):
+#         queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
+#         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+#             result = re.search(r'(?<=polyclinic/)\d+(?=/change)', request.headers['Referer'])
+#             if result:
+#                 polyclinic_id = int(result.group(0))
+#                 queryset = queryset.filter(polyclinic=polyclinic_id).order_by('-id')
+#         return queryset, may_have_duplicates
 
 
-@admin.register(Address)
-class AddressAdmin(admin.ModelAdmin):
-    list_display = ('name', 'polyclinic')
-    search_fields = ('name', 'polyclinic')
+# @admin.register(Address)
+# class AddressAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'polyclinic')
+#     search_fields = ('name', 'polyclinic')
 
-    def get_search_results(self, request, queryset, search_term):
-        queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
-        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            result = re.search(r'(?<=polyclinic/)\d+(?=/change)', request.headers['Referer'])
-            if result:
-                polyclinic_id = int(result.group(0))
-                queryset = queryset.filter(polyclinic=polyclinic_id).order_by('-id')
-        return queryset, may_have_duplicates
+#     def get_search_results(self, request, queryset, search_term):
+#         queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
+#         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+#             result = re.search(r'(?<=polyclinic/)\d+(?=/change)', request.headers['Referer'])
+#             if result:
+#                 polyclinic_id = int(result.group(0))
+#                 queryset = queryset.filter(polyclinic=polyclinic_id).order_by('-id')
+#         return queryset, may_have_duplicates
 
 
 @admin.register(District)
