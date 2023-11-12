@@ -20,11 +20,11 @@ class Speciality(BaseModel):
         verbose_name = _('Speciality')
 
     name = models.CharField(_('Speciality'), max_length=50)
-    rating_1 = models.ForeignKey('Doctor', related_name='doctor_1', on_delete=models.CASCADE, verbose_name=_('Rating 1'), blank=True, null=True)
-    rating_2 = models.ForeignKey('Doctor', related_name='doctor_2', on_delete=models.CASCADE, verbose_name=_('Rating 2'), blank=True, null=True)
-    rating_3 = models.ForeignKey('Doctor', related_name='doctor_3', on_delete=models.CASCADE, verbose_name=_('Rating 3'), blank=True, null=True)
-    rating_4 = models.ForeignKey('Doctor', related_name='doctor_4', on_delete=models.CASCADE, verbose_name=_('Rating 4'), blank=True, null=True)
-    rating_5 = models.ForeignKey('Doctor', related_name='doctor_5', on_delete=models.CASCADE, verbose_name=_('Rating 5'), blank=True, null=True)
+    rating_1 = models.ForeignKey('Doctor', related_name='rating_1', on_delete=models.SET_NULL, verbose_name=_('Rating 1'), blank=True, null=True)
+    rating_2 = models.ForeignKey('Doctor', related_name='rating_2', on_delete=models.SET_NULL, verbose_name=_('Rating 2'), blank=True, null=True)
+    rating_3 = models.ForeignKey('Doctor', related_name='rating_3', on_delete=models.SET_NULL, verbose_name=_('Rating 3'), blank=True, null=True)
+    rating_4 = models.ForeignKey('Doctor', related_name='rating_4', on_delete=models.SET_NULL, verbose_name=_('Rating 4'), blank=True, null=True)
+    rating_5 = models.ForeignKey('Doctor', related_name='rating_5', on_delete=models.SET_NULL, verbose_name=_('Rating 5'), blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -36,17 +36,14 @@ class Polyclinic(BaseModel):
         verbose_name = _('Polyclinic')
 
     name = models.CharField(_('Name'), max_length=50)
-    address = models.TextField(_('Address'), blank=True, null=True)
-    phone = models.TextField(_('Phone'), blank=True, null=True)
-    # address = models.ManyToManyField('Address', related_name='address_set', verbose_name=_('Addresses'))
-    # phone = models.ManyToManyField('Phone', related_name='phone', verbose_name=_('Phones'))
-    position = models.ManyToManyField('Position', related_name='position_set', verbose_name=_('Position'))
-    speciality = models.ManyToManyField('Speciality', related_name='speciality_set', verbose_name=_('Speciality'))
+    address = models.ManyToManyField('Address', related_name='polyclinic', verbose_name=_('Addresses'))
+    phone = models.ManyToManyField('Phone', related_name='polyclinic', verbose_name=_('Phone numbers'))
+    speciality = models.ManyToManyField('Speciality', related_name='polyclinic', verbose_name=_('Speciality'))
     site_url = models.URLField(_('Site URL'), blank=True, null=True)
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/NoneClinic.jpg', blank=True)
     work_time_start = models.TimeField(_('Work time start'), blank=True, null=True)
     work_time_end = models.TimeField(_('Work time end'), blank=True, null=True)
-    district = models.ForeignKey('District', on_delete=models.CASCADE, related_name='district_set', verbose_name=_('District'), blank=True, null=True)
+    district = models.ForeignKey('District', on_delete=models.SET_NULL, related_name='polyclinic', verbose_name=_('District'), blank=True, null=True)
 
     @admin.display(description=_('Work time'))
     def work_time(self):
@@ -64,11 +61,10 @@ class Phone(BaseModel):
         verbose_name_plural = _('Phone numbers')
         verbose_name = _('Phone number')
 
-    number = models.CharField(_('Number'), max_length=15)
-    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_set', verbose_name=_('Polyclinic'), blank=True, null=True)
+    number = models.CharField(_('Number'), max_length=15, unique=True)
 
     def __str__(self):
-        return f'{self.number} - {self.polyclinic}'
+        return self.number
 
 
 class Address(BaseModel):
@@ -76,11 +72,10 @@ class Address(BaseModel):
         verbose_name_plural = _('Addresses')
         verbose_name = _('Address')
 
-    name = models.CharField(_('Address'), max_length=100)
-    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, related_name='polyclinic_address', verbose_name=_('Polyclinic'), blank=True, null=True)
+    name = models.CharField(_('Address'), max_length=100, unique=True)
 
     def __str__(self):
-        return f'{self.name}'
+        return self.name
 
 
 class District(BaseModel):
@@ -123,8 +118,8 @@ class Schedule(BaseModel):
     day_of_week = models.CharField(_('Day of week'), max_length=1, choices=DAY_OF_WEEK)
     start_time = models.TimeField(_('Start time'))
     end_time = models.TimeField(_('End time'))
-    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.CASCADE, verbose_name=_('Polyclinic'))
-    address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_schedule', verbose_name=_('Address'), blank=True, null=True)
+    polyclinic = models.ForeignKey(Polyclinic, on_delete=models.SET_NULL, related_name='schedule', verbose_name=_('Polyclinic'), blank=True, null=True)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, related_name='schedule', verbose_name=_('Address'), blank=True, null=True)
 
     @property
     def day_of_week_name(self):
@@ -147,13 +142,13 @@ class Doctor(BaseModel):
     paternal_name = models.CharField(_('Paternal name'), max_length=50)
     phone = models.CharField(_('Phone number'), max_length=15)
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/None.png', blank=True)
-    speciality = models.ForeignKey(Speciality, related_name='speciality', on_delete=models.CASCADE, verbose_name=_('Speciality'))
-    position = models.ForeignKey(Position, on_delete=models.CASCADE, verbose_name=_('Position'))
-    polyclinic = models.ManyToManyField(Polyclinic, related_name='polyclinic', verbose_name=_('Polyclinic'))
-    district = models.ManyToManyField(District, related_name='district', verbose_name=_('District'))
+    speciality = models.ForeignKey(Speciality, related_name='doctor', on_delete=models.SET_NULL, verbose_name=_('Speciality'), blank=True, null=True)
+    position = models.ForeignKey(Position, on_delete=models.SET_NULL, verbose_name=_('Position'), blank=True, null=True)
+    polyclinic = models.ManyToManyField(Polyclinic, related_name='doctor', verbose_name=_('Polyclinic'))
+    district = models.ManyToManyField(District, related_name='doctor', verbose_name=_('District'))
     experience = models.IntegerField(_('Experience'), default=0, validators=[MinValueValidator(1), MaxValueValidator(100)])
     cost = models.FloatField(_('Cost'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
-    schedule = models.ManyToManyField(Schedule, related_name='schedule', verbose_name=_('Schedule'))
+    schedule = models.ManyToManyField(Schedule, related_name='doctor', verbose_name=_('Schedule'))
 
     @property
     def full_name(self):
