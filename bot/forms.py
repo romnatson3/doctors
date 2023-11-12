@@ -28,6 +28,7 @@ class PolyclinicForm(forms.ModelForm):
         self.fields['phone'].queryset = queryset
         queryset = Address.objects.filter(polyclinic=instance).all()
         self.fields['address'].queryset = queryset
+        self.fields['speciality'].widget.can_add_related = False
 
     class Meta:
         model = Polyclinic

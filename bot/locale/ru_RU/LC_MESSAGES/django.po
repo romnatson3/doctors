@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-11 14:34+0000\n"
+"POT-Creation-Date: 2023-11-12 16:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,27 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: admin.py:52 models.py:44 models.py:143
+#: admin.py:54 models.py:46 models.py:149
 msgid "Photo"
 msgstr "Фото"
 
-#: admin.py:60 models.py:40
-msgid "Phones"
-msgstr "Телефоны"
-
-#: admin.py:67 models.py:43
+#: admin.py:69 models.py:45
 msgid "Site URL"
 msgstr "Сайт"
-
-#: admin.py:75 models.py:39 models.py:74
-msgid "Addresses"
-msgstr "Адреса"
 
 #: models.py:19
 msgid "Specialities"
 msgstr "Специальности"
 
-#: models.py:20 models.py:22 models.py:42 models.py:144
+#: models.py:20 models.py:22 models.py:44 models.py:150
 msgid "Speciality"
 msgstr "Специальность"
 
@@ -65,154 +57,162 @@ msgstr "Рейтинг 5"
 msgid "Polyclinics"
 msgstr "Поликлиники"
 
-#: models.py:36 models.py:66 models.py:78 models.py:146
+#: models.py:36 models.py:68 models.py:80 models.py:126 models.py:152
 msgid "Polyclinic"
 msgstr "Поликлиника"
 
-#: models.py:38 models.py:89 models.py:100
+#: models.py:38 models.py:91 models.py:102
 msgid "Name"
 msgstr "Имя"
 
-#: models.py:41 models.py:98 models.py:145
-msgid "Position"
-msgstr "Специализация"
-
-#: models.py:45
-msgid "Work time start"
-msgstr "Время начала работы"
-
-#: models.py:46
-msgid "Work time end"
-msgstr "Время окончания работы"
-
-#: models.py:47 models.py:87 models.py:147
-msgid "District"
-msgstr "Район"
-
-#: models.py:49
-msgid "Work time"
-msgstr "Время работы"
-
-#: models.py:62
-msgid "Phone numbers"
-msgstr "Номера телефонов"
-
-#: models.py:63 models.py:142 models.py:169
-msgid "Phone number"
-msgstr "Номер телефона"
-
-#: models.py:65
-msgid "Number"
-msgstr "Номер"
-
-#: models.py:75 models.py:77
+#: models.py:39 models.py:77 models.py:79 models.py:127
 msgid "Address"
 msgstr "Адрес"
 
-#: models.py:86
+#: models.py:40
+msgid "Phone"
+msgstr "Телефон"
+
+#: models.py:43 models.py:100 models.py:151
+msgid "Position"
+msgstr "Специализация"
+
+#: models.py:47
+msgid "Work time start"
+msgstr "Время начала работы"
+
+#: models.py:48
+msgid "Work time end"
+msgstr "Время окончания работы"
+
+#: models.py:49 models.py:89 models.py:153
+msgid "District"
+msgstr "Район"
+
+#: models.py:51
+msgid "Work time"
+msgstr "Время работы"
+
+#: models.py:64
+msgid "Phone numbers"
+msgstr "Номера телефонов"
+
+#: models.py:65 models.py:148 models.py:175
+msgid "Phone number"
+msgstr "Номер телефона"
+
+#: models.py:67
+msgid "Number"
+msgstr "Номер"
+
+#: models.py:76
+msgid "Addresses"
+msgstr "Адреса"
+
+#: models.py:88
 msgid "Districts"
 msgstr "Районы"
 
-#: models.py:97
+#: models.py:99
 msgid "Positions"
 msgstr "Специализации"
 
-#: models.py:108
+#: models.py:110
 msgid "Schedules"
 msgstr "Расписания"
 
-#: models.py:109 models.py:150
+#: models.py:111 models.py:156
 msgid "Schedule"
 msgstr "Расписание"
 
-#: models.py:112
+#: models.py:114
 msgid "Monday"
 msgstr "Понедельник"
 
-#: models.py:113
+#: models.py:115
 msgid "Tuesday"
 msgstr "Вторник"
 
-#: models.py:114
+#: models.py:116
 msgid "Wednesday"
 msgstr "Среда"
 
-#: models.py:115
+#: models.py:117
 msgid "Thursday"
 msgstr "Четверг"
 
-#: models.py:116
+#: models.py:118
 msgid "Friday"
 msgstr "Пятница"
 
-#: models.py:117
+#: models.py:119
 msgid "Saturday"
 msgstr "Суббота"
 
-#: models.py:118
+#: models.py:120
 msgid "Sunday"
 msgstr "Воскресенье"
 
-#: models.py:121
+#: models.py:123
 msgid "Day of week"
 msgstr "День недели"
 
-#: models.py:122
+#: models.py:124
 msgid "Start time"
 msgstr "Время начала"
 
-#: models.py:123
+#: models.py:125
 msgid "End time"
 msgstr "Время окончания"
 
-#: models.py:136
+#: models.py:142
 msgid "Doctors"
 msgstr "Врачи"
 
-#: models.py:137
+#: models.py:143
 msgid "Doctor"
 msgstr "Врач"
 
-#: models.py:139 models.py:167
+#: models.py:145 models.py:173
 msgid "First name"
 msgstr "Имя"
 
-#: models.py:140 models.py:168
+#: models.py:146 models.py:174
 msgid "Last name"
 msgstr "Фамилия"
 
-#: models.py:141
+#: models.py:147
 msgid "Paternal name"
 msgstr "Отчество"
 
-#: models.py:148
+#: models.py:154
 msgid "Experience"
 msgstr "Опыт"
 
-#: models.py:149
+#: models.py:155
 msgid "Cost"
 msgstr "Стоимость"
 
-#: models.py:162
+#: models.py:168
 msgid "Users"
 msgstr ""
 
-#: models.py:163
+#: models.py:169
 msgid "User"
 msgstr ""
 
-#: models.py:165
+#: models.py:171
 msgid "ID"
 msgstr ""
 
-#: models.py:166
+#: models.py:172
 msgid "Username"
 msgstr ""
 
-#: models.py:170
+#: models.py:176
 msgid "Is bot"
 msgstr ""
 
-#: models.py:171
+#: models.py:177
 msgid "Is deleted"
 msgstr ""
