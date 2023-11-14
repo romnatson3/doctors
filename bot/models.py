@@ -6,6 +6,15 @@ from bot import texts
 from django.contrib import admin
 
 
+RATING = (
+    ('1', _('First place')),
+    ('2', _('Second place')),
+    ('3', _('Third place')),
+    ('4', _('Fourth place')),
+    ('5', _('Fifth place')),
+)
+
+
 class BaseModel(models.Model):
     class Meta:
         abstract = True
@@ -20,11 +29,6 @@ class Speciality(BaseModel):
         verbose_name = _('Speciality')
 
     name = models.CharField(_('Speciality'), max_length=50)
-    rating_1 = models.ForeignKey('Doctor', related_name='rating_1', on_delete=models.SET_NULL, verbose_name=_('Rating 1'), blank=True, null=True)
-    rating_2 = models.ForeignKey('Doctor', related_name='rating_2', on_delete=models.SET_NULL, verbose_name=_('Rating 2'), blank=True, null=True)
-    rating_3 = models.ForeignKey('Doctor', related_name='rating_3', on_delete=models.SET_NULL, verbose_name=_('Rating 3'), blank=True, null=True)
-    rating_4 = models.ForeignKey('Doctor', related_name='rating_4', on_delete=models.SET_NULL, verbose_name=_('Rating 4'), blank=True, null=True)
-    rating_5 = models.ForeignKey('Doctor', related_name='rating_5', on_delete=models.SET_NULL, verbose_name=_('Rating 5'), blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -36,24 +40,33 @@ class Polyclinic(BaseModel):
         verbose_name = _('Polyclinic')
 
     name = models.CharField(_('Name'), max_length=50)
-    address = models.ManyToManyField('Address', related_name='polyclinic', verbose_name=_('Addresses'))
-    phone = models.ManyToManyField('Phone', related_name='polyclinic', verbose_name=_('Phone numbers'))
-    speciality = models.ManyToManyField('Speciality', related_name='polyclinic', verbose_name=_('Speciality'))
+    address = models.ManyToManyField('Address', verbose_name=_('Address'))
+    phone = models.ManyToManyField('Phone', verbose_name=_('Phone number'))
+    speciality = models.ManyToManyField('Speciality', verbose_name=_('Speciality'))
     site_url = models.URLField(_('Site URL'), blank=True, null=True)
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/NoneClinic.jpg', blank=True)
     work_time_start = models.TimeField(_('Work time start'), blank=True, null=True)
     work_time_end = models.TimeField(_('Work time end'), blank=True, null=True)
     district = models.ForeignKey('District', on_delete=models.SET_NULL, related_name='polyclinic', verbose_name=_('District'), blank=True, null=True)
+    rating = models.CharField(_('Rating'), choices=RATING, blank=True, null=True)
 
     @admin.display(description=_('Work time'))
     def work_time(self):
         if not (self.work_time_start and self.work_time_end):
             return texts.around_the_clock
         else:
-            return f'{self.work_time_start} - {self.work_time_end}'
+            return f'{self.work_time_start.strftime("%H:%M")} - {self.work_time_end.strftime("%H:%M")}'
+
+    @property
+    def full_name(self):
+        if self.address.exists():
+            addresses = '; '.join([i.name for i in self.address.all()])
+            return f'{self.name} - {addresses}'
+        else:
+            return self.name
 
     def __str__(self):
-        return self.name
+        return self.full_name
 
 
 class Phone(BaseModel):
@@ -119,17 +132,16 @@ class Schedule(BaseModel):
     start_time = models.TimeField(_('Start time'))
     end_time = models.TimeField(_('End time'))
     polyclinic = models.ForeignKey(Polyclinic, on_delete=models.SET_NULL, related_name='schedule', verbose_name=_('Polyclinic'), blank=True, null=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, related_name='schedule', verbose_name=_('Address'), blank=True, null=True)
 
     @property
     def day_of_week_name(self):
         return list(filter(lambda x: x[0] == self.day_of_week, self.DAY_OF_WEEK))[0][1]
 
     def __str__(self):
-        if self.address:
-            return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic} - {self.address}'
+        if self.polyclinic:
+            return f'{self.day_of_week_name} {self.start_time.strftime("%H:%M")} - {self.end_time.strftime("%H:%M")}, {self.polyclinic}'
         else:
-            return f'{self.day_of_week_name} {self.start_time} - {self.end_time}, {self.polyclinic}'
+            return f'{self.day_of_week_name} {self.start_time.strftime("%H:%M")} - {self.end_time.strftime("%H:%M")}'
 
 
 class Doctor(BaseModel):
@@ -144,11 +156,12 @@ class Doctor(BaseModel):
     image = models.ImageField(_('Photo'), upload_to='images/', default='images/None.png', blank=True)
     speciality = models.ForeignKey(Speciality, related_name='doctor', on_delete=models.SET_NULL, verbose_name=_('Speciality'), blank=True, null=True)
     position = models.ForeignKey(Position, on_delete=models.SET_NULL, verbose_name=_('Position'), blank=True, null=True)
-    polyclinic = models.ManyToManyField(Polyclinic, related_name='doctor', verbose_name=_('Polyclinic'))
-    district = models.ManyToManyField(District, related_name='doctor', verbose_name=_('District'))
+    polyclinic = models.ManyToManyField(Polyclinic, verbose_name=_('Polyclinic'))
+    district = models.ManyToManyField(District, verbose_name=_('District'))
     experience = models.IntegerField(_('Experience'), default=0, validators=[MinValueValidator(1), MaxValueValidator(100)])
     cost = models.FloatField(_('Cost'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
-    schedule = models.ManyToManyField(Schedule, related_name='doctor', verbose_name=_('Schedule'))
+    schedule = models.ManyToManyField(Schedule, verbose_name=_('Schedule'))
+    rating = models.CharField(_('Rating'), choices=RATING, blank=True, null=True)
 
     @property
     def full_name(self):
