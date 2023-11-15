@@ -2,7 +2,7 @@ import logging
 import json
 from celery.utils.log import get_task_logger
 from django.db.models.functions import Concat, Cast
-from django.db.models import CharField, Value, F
+from django.db.models import CharField, Value, F, Q
 from app.celery import app
 from bot.misc import send_message, batched
 from bot import texts
@@ -16,14 +16,37 @@ logger.setLevel(logging.INFO)
 @app.task()
 def send_message_to_new_user(id):
     text = f'{texts.start}'
-    reply_markup = json.dumps({'keyboard': [[{'text': 'Мой доктор'}]], 'resize_keyboard': True})
+    reply_markup = json.dumps({'keyboard': [[{'text': texts.my_doctor_button}, {'text': texts.search_by_speciality_button}]], 'resize_keyboard': True})
     send_message('sendMessage', chat_id=id, parse_mode='HTML', text=text, reply_markup=reply_markup)
     logger.info(f'Send start message to {id=} successfully')
 
 
 @app.task()
-def send_message_specialities(id):
-    specialities = Speciality.objects.annotate(
+def send_message_not_found(id):
+    send_message('sendMessage', chat_id=id, parse_mode='HTML', text=f'<i>{texts.not_found}</i>')
+    logger.info(f'Send message not found to {id=} successfully')
+
+
+@app.task()
+def send_message_before_searching(id):
+    send_message('sendMessage', chat_id=id, parse_mode='HTML', text=texts.search_by_speciality_message)
+    logger.info(f'Send message before searching to {id=} successfully')
+
+
+@app.task()
+def send_message_specialities(id, speciality_id=None):
+    if speciality_id is None:
+        text = f'<b>{texts.speciality_message}</b>'
+        where = Q()
+    elif speciality_id:
+        text = f'<b>{texts.speciality_message_for_search}</b>'
+        where = Q(id__in=speciality_id)
+    elif speciality_id == []:
+        send_message('sendMessage', chat_id=id, parse_mode='HTML', text=f'<i>{texts.not_found}</i>')
+        logger.info(f'Send message not found to {id=} successfully')
+        return
+
+    specialities = Speciality.objects.filter(where).annotate(
         text=F('name'),
         callback_data=Concat(
             Value('{"type":"speciality","data":"'),
@@ -31,7 +54,6 @@ def send_message_specialities(id):
             Value('"}')
         )
     ).values('text', 'callback_data').order_by('name')
-    text = f'<b>{texts.my_doctor}</b>'
     inline_keyboard = batched(specialities, 2)
     reply_markup = json.dumps({'inline_keyboard': inline_keyboard})
     send_message('sendMessage', chat_id=id, parse_mode='HTML', text=text, reply_markup=reply_markup)
