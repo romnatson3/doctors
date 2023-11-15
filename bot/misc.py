@@ -31,13 +31,13 @@ class DotAccessibleDict(dict):
         return Empty()
 
 
-def batched(l, num):
+def batched(lst, num):
     i = 0
-    ls = []
-    for _ in range(ceil(len(l) / num)):
-        ls.append(l[i:i + num])
+    batch = []
+    for _ in range(ceil(len(lst) / num)):
+        batch.append(lst[i:i + num])
         i += num
-    return ls
+    return batch
 
 
 def send_message(method, **data):

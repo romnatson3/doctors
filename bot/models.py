@@ -25,6 +25,7 @@ class BaseModel(models.Model):
 
 class Speciality(BaseModel):
     class Meta:
+        indexes = [models.Index(fields=['name'])]
         verbose_name_plural = _('Specialities')
         verbose_name = _('Speciality')
 
@@ -36,6 +37,9 @@ class Speciality(BaseModel):
 
 class Polyclinic(BaseModel):
     class Meta:
+        indexes = [
+            models.Index(fields=['district'])
+        ]
         verbose_name_plural = _('Polyclinics')
         verbose_name = _('Polyclinic')
 
@@ -146,6 +150,9 @@ class Schedule(BaseModel):
 
 class Doctor(BaseModel):
     class Meta:
+        indexes = [
+            models.Index(fields=['speciality'])
+        ]
         verbose_name_plural = _('Doctors')
         verbose_name = _('Doctor')
 
