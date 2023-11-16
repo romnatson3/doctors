@@ -56,6 +56,7 @@ class PolyclinicAdmin(admin.ModelAdmin):
               'speciality', 'work_time_start', 'work_time_end')
     readonly_fields = ('image_tag',)
     list_display_links = ('name',)
+    actions = ('copy_action',)
 
     def image_tag(self, obj):
         return mark_safe(f'<img src="{obj.image.url}" width="50" height="50" />')
@@ -91,6 +92,19 @@ class PolyclinicAdmin(admin.ModelAdmin):
         else:
             return '-'
     addresses.short_description = _('Addresses')
+
+    def copy_action(self, request, queryset):
+        for obj in queryset:
+            previous_address = obj.address.all()
+            previous_phone = obj.phone.all()
+            previous_speciality = obj.speciality.all()
+            obj.id = None
+            obj.save()
+            obj.address.set(previous_address)
+            obj.phone.set(previous_phone)
+            obj.speciality.set(previous_speciality)
+        self.message_user(request, _('Selected records were copied successfully'))
+    copy_action.short_description = _('Copy chosen records')
 
 
 @admin.register(Phone)
