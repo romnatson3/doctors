@@ -85,7 +85,7 @@ def telegram_webhook(request):
                                 result.append(doctor)
 
                     if result:
-                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10)
+                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10, reverse=True)
                         doctors_id = [i.id for i in result]
                         send_message_doctor.delay(message.from_user.id, message.message.message_id, doctors_id)
                     else:
@@ -100,7 +100,7 @@ def telegram_webhook(request):
                                 result.append(polyclinic)
 
                     if result:
-                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10)
+                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10, reverse=True)
                         polyclinics_id = [i.id for i in result]
                         send_message_polyclinic.delay(message.from_user.id, message.message.message_id, polyclinics_id)
                     else:

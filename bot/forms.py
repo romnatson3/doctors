@@ -23,6 +23,7 @@ class DoctorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['rating'].empty_label = None
+        self.fields['polyclinic'].required = False
 
     schedule = forms.ModelMultipleChoiceField(
         label=_('Schedule'),
