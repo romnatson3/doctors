@@ -18,7 +18,7 @@ class DoctorAdmin(admin.ModelAdmin):
     autocomplete_fields = ('polyclinic', 'district', 'schedule')
     list_display = ('id', 'last_name', 'first_name', 'paternal_name', 'phone',
                     'speciality', 'position', 'experience', 'cost', 'rating', 'image_tag')
-    list_filter = ('speciality', 'position', 'polyclinic', 'district', 'schedule')
+    list_filter = ('speciality', 'position', 'district')
     search_fields = ('last_name', 'first_name', 'paternal_name')
     fields = ('last_name', 'first_name', 'paternal_name', 'phone', 'rating', 'image_tag',
               'image', 'speciality', 'position', 'polyclinic', 'district',
