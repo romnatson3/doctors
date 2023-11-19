@@ -1,5 +1,5 @@
 from django import forms
-from bot.models import Doctor, Polyclinic, Phone, Address, Schedule
+from bot.models import Doctor, Polyclinic, Phone, Address, Schedule, Share
 from django.contrib.admin.widgets import AutocompleteSelectMultiple
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +14,17 @@ class PolyclinicForm(forms.ModelForm):
         # self.fields['address'].queryset = queryset
         # self.fields['speciality'].widget.can_add_related = False
 
+    share = forms.ModelMultipleChoiceField(
+        label=_('Share'),
+        queryset=Share.objects.all(),
+        required=False,
+        widget=AutocompleteSelectMultiple(
+            Polyclinic.share.field,
+            admin.site,
+            attrs={'style': 'width: 700px'}
+        )
+    )
+
     class Meta:
         model = Polyclinic
         fields = '__all__'
@@ -22,7 +33,7 @@ class PolyclinicForm(forms.ModelForm):
 class DoctorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['rating'].empty_label = None
+        self.fields['rating_general'].empty_label = None
         self.fields['polyclinic'].required = False
 
     schedule = forms.ModelMultipleChoiceField(
@@ -38,4 +49,16 @@ class DoctorForm(forms.ModelForm):
 
     class Meta:
         model = Doctor
+        fields = '__all__'
+
+
+class ShareForm(forms.ModelForm):
+    name = forms.CharField(
+        label=_('Name'),
+        required=True,
+        widget=forms.TextInput(attrs={'style': 'width: 500px'})
+    )
+
+    class Meta:
+        model = Share
         fields = '__all__'

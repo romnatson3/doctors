@@ -16,7 +16,16 @@ logger.setLevel(logging.INFO)
 @app.task()
 def send_message_to_new_user(id):
     text = f'{texts.start}'
-    reply_markup = json.dumps({'keyboard': [[{'text': texts.my_doctor_button}, {'text': texts.search_by_speciality_button}]], 'resize_keyboard': True})
+    reply_markup = json.dumps(
+        {
+            'keyboard': [[
+                {'text': texts.my_doctor_button},
+                {'text': texts.search_by_speciality_button},
+                {'text': texts.share},
+            ]],
+            'resize_keyboard': True
+        }
+    )
     send_message('sendMessage', chat_id=id, parse_mode='HTML', text=text, reply_markup=reply_markup)
     logger.info(f'Send start message to {id=} successfully')
 
@@ -25,6 +34,12 @@ def send_message_to_new_user(id):
 def send_message_not_found(id):
     send_message('sendMessage', chat_id=id, parse_mode='HTML', text=f'<i>{texts.not_found}</i>')
     logger.info(f'Send message not found to {id=} successfully')
+
+
+@app.task()
+def send_message_not_found_share(id):
+    send_message('sendMessage', chat_id=id, parse_mode='HTML', text=f'<i>{texts.not_found_share}</i>')
+    logger.info(f'Send message share not found to {id=} successfully')
 
 
 @app.task()
@@ -107,7 +122,7 @@ def send_message_doctor(id, message_id, doctors_id):
         position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
         polyclinics = f'{doctor.polyclinic.model._meta.verbose_name_plural}:\n'
         for i in doctor.polyclinic.all():
-            polyclinics += f'<i>{i.full_name}</i>\n'
+            polyclinics += f'<i>{i.name}</i>\n'
         experience = f'{doctor._meta.get_field("experience").verbose_name}: <i>{doctor.experience} лет</i>\n'
         cost = f'{doctor._meta.get_field("cost").verbose_name}: <i>{doctor.cost} грн.</i>\n'
         schedules = f'{doctor.schedule.model._meta.verbose_name}:\n'
@@ -121,9 +136,10 @@ def send_message_doctor(id, message_id, doctors_id):
 
 @app.task()
 def send_message_polyclinic(id, message_id, polyclinics_id):
-    send_message('deleteMessage', chat_id=id, message_id=message_id)
+    if message_id:
+        send_message('deleteMessage', chat_id=id, message_id=message_id)
     polyclinics = list(Polyclinic.objects.select_related('district')
-                       .prefetch_related('phone', 'speciality', 'address')
+                       .prefetch_related('phone', 'speciality', 'address', 'share')
                        .filter(id__in=polyclinics_id).all())
     polyclinics.sort(key=lambda x: polyclinics_id.index(x.id))
     for polyclinic in polyclinics:
@@ -137,6 +153,13 @@ def send_message_polyclinic(id, message_id, polyclinics_id):
         url = polyclinic.site_url if polyclinic.site_url else ''
         site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
         work_time = f'{polyclinic.work_time.short_description}: <i>{polyclinic.work_time()}</i>\n'
-        caption = name + addresses + site + work_time + phones
+        if polyclinic.share.exists():
+            share = f'{polyclinic.share.model._meta.verbose_name_plural}:\n'
+            for i in polyclinic.share.all():
+                share += f'<i>{i}</i>\n'
+                share += f'{i.description}\n'
+        else:
+            share = ''
+        caption = name + addresses + site + work_time + phones + share
         send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=polyclinic.image.path)
         logger.info(f'Send message about polyclinic to {id=} successfully')

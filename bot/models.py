@@ -52,25 +52,34 @@ class Polyclinic(BaseModel):
     work_time_start = models.TimeField(_('Work time start'), blank=True, null=True)
     work_time_end = models.TimeField(_('Work time end'), blank=True, null=True)
     district = models.ForeignKey('District', on_delete=models.SET_NULL, related_name='polyclinic', verbose_name=_('District'), blank=True, null=True)
-    rating = models.CharField(_('Rating'), choices=RATING, blank=True, null=True)
+    rating_general = models.CharField(_('General rating'), choices=RATING, blank=True, null=True)
+    share = models.ManyToManyField('Share', verbose_name=_('Share'), blank=True)
+    rating_share = models.CharField(_('Share rating'), choices=RATING, blank=True, null=True)
 
     @admin.display(description=_('Work time'))
     def work_time(self):
         if not (self.work_time_start and self.work_time_end):
             return texts.around_the_clock
         else:
-            return f'{self.work_time_start.strftime("%H:%M")} - {self.work_time_end.strftime("%H:%M")}'
-
-    @property
-    def full_name(self):
-        if self.address.exists():
-            addresses = '; '.join([i.name for i in self.address.all()])
-            return f'{self.name} - {addresses}'
-        else:
-            return self.name
+            return f'{self.work_time_start:%H:%M} - {self.work_time_end:%H:%M}'
 
     def __str__(self):
-        return self.full_name
+        return self.name
+
+
+class Share(BaseModel):
+    class Meta:
+        verbose_name_plural = _('Shares')
+        verbose_name = _('Share')
+
+    name = models.CharField(_('Name'), max_length=255, unique=True)
+    start_date = models.DateField(_('Start date'))
+    end_date = models.DateField(_('End date'))
+    description = models.TextField(_('Description'))
+    sum = models.PositiveIntegerField(_('Sum'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
+
+    def __str__(self):
+        return f'{self.name} {self.start_date:%d.%m.%Y}-{self.end_date:%d.%m.%Y}, {self.sum}'
 
 
 class Phone(BaseModel):
@@ -168,7 +177,7 @@ class Doctor(BaseModel):
     experience = models.IntegerField(_('Experience'), default=0, validators=[MinValueValidator(1), MaxValueValidator(100)])
     cost = models.FloatField(_('Cost'), default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)])
     schedule = models.ManyToManyField(Schedule, verbose_name=_('Schedule'))
-    rating = models.CharField(_('Rating'), choices=RATING, blank=True, null=True)
+    rating_general = models.CharField(_('Rating'), choices=RATING, blank=True, null=True)
 
     @property
     def full_name(self):
