@@ -1,9 +1,10 @@
 from django.contrib import admin
-from bot.models import Doctor, Speciality, Polyclinic, District, Position, Schedule, Phone, Address
+from bot.models import Doctor, Speciality, Polyclinic, District, Position, Schedule, Phone, Address, Share
 from django.utils.html import mark_safe
-from bot.forms import PolyclinicForm, DoctorForm
+from bot.forms import PolyclinicForm, DoctorForm, ShareForm
 from django.utils.translation import gettext_lazy as _
 import re
+from bot.filters import SpecialityFilter
 
 
 admin.site.site_header = _('DOCTOR BOT')
@@ -17,11 +18,12 @@ class DoctorAdmin(admin.ModelAdmin):
     list_per_page = 150
     autocomplete_fields = ('polyclinic', 'district', 'schedule')
     list_display = ('id', 'last_name', 'first_name', 'paternal_name', 'phone',
-                    'speciality', 'position', 'experience', 'cost', 'rating', 'image_tag')
-    list_filter = ('speciality', 'position', 'district')
+                    'speciality', 'position', 'experience', 'cost',
+                    'rating_general', 'image_tag')
+    list_filter = (SpecialityFilter, 'district')
     search_fields = ('last_name', 'first_name', 'paternal_name')
-    fields = ('last_name', 'first_name', 'paternal_name', 'phone', 'rating', 'image_tag',
-              'image', 'speciality', 'position', 'polyclinic', 'district',
+    fields = ('last_name', 'first_name', 'paternal_name', 'phone', 'rating_general',
+              'image_tag', 'image', 'speciality', 'position', 'polyclinic', 'district',
               'schedule', 'experience', 'cost')
     readonly_fields = ('image_tag',)
     list_display_links = ('last_name', 'first_name', 'paternal_name')
@@ -31,10 +33,10 @@ class DoctorAdmin(admin.ModelAdmin):
     image_tag.short_description = 'Photo'
 
     def save_model(self, request, obj, form, change):
-        if obj.rating:
-            doctors = Doctor.objects.filter(rating=obj.rating).all()
+        if obj.rating_general:
+            doctors = Doctor.objects.filter(rating_general=obj.rating_general).all()
             for i in doctors:
-                i.rating = None
+                i.rating_general = None
                 i.save()
         super().save_model(request, obj, form, change)
 
@@ -49,11 +51,16 @@ class SpecialityAdmin(admin.ModelAdmin):
 class PolyclinicAdmin(admin.ModelAdmin):
     form = PolyclinicForm
     list_per_page = 150
-    autocomplete_fields = ('speciality', 'phone', 'address')
-    list_display = ('id', 'name', 'addresses', 'district', 'site', 'phones', 'work_time', 'rating', 'image_tag')
+    list_filter = (SpecialityFilter, 'district')
+    autocomplete_fields = ('speciality', 'phone', 'address', 'share')
+    list_display = ('id', 'name', 'addresses', 'district', 'site', 'phones',
+                    'work_time', 'rating_general', 'rating_share', 'image_tag')
     search_fields = ('name',)
-    fields = ('name', 'address', 'site_url', 'phone', 'rating', 'image_tag', 'image', 'district',
-              'speciality', 'work_time_start', 'work_time_end')
+    fieldsets = (
+        (None, {'fields': ('name', 'address', 'site_url', 'phone', 'rating_general',
+                'image_tag', 'image', 'district', 'speciality', 'work_time_start', 'work_time_end',
+                'share', 'rating_share')}),
+    )
     readonly_fields = ('image_tag',)
     list_display_links = ('name',)
     actions = ('copy_action',)
@@ -71,10 +78,15 @@ class PolyclinicAdmin(admin.ModelAdmin):
     phones.short_description = _('Phone numbers')
 
     def save_model(self, request, obj, form, change):
-        if obj.rating:
-            polyclinics = Polyclinic.objects.filter(rating=obj.rating).all()
+        if obj.rating_share:
+            polyclinics = Polyclinic.objects.filter(rating_share=obj.rating_share).all()
             for i in polyclinics:
-                i.rating = None
+                i.rating_share = None
+                i.save()
+        if obj.rating_general:
+            polyclinics = Polyclinic.objects.filter(rating_general=obj.rating_general).all()
+            for i in polyclinics:
+                i.rating_general = None
                 i.save()
         super().save_model(request, obj, form, change)
 
@@ -107,11 +119,31 @@ class PolyclinicAdmin(admin.ModelAdmin):
     copy_action.short_description = _('Copy chosen records')
 
 
+@admin.register(Share)
+class ShareAdmin(admin.ModelAdmin):
+    form = ShareForm
+    list_display_links = ('name',)
+    list_display = ('id', 'name', 'polyclinics', 'start_date', 'end_date', 'sum')
+    search_fields = ('name',)
+    fields = ('name', 'description', 'start_date', 'end_date', 'sum', 'polyclinics')
+    readonly_fields = ('polyclinics',)
+
+    def polyclinics(self, obj):
+        if obj.id:
+            polyclinics = Polyclinic.objects.filter(share__id=obj.id).values_list('name', flat=True)
+            if polyclinics:
+                text = ',<br>'.join(polyclinics)
+                return mark_safe(f'<span>{text}</span>')
+        return '-'
+    polyclinics.short_description = _('Polyclinics')
+
+
 @admin.register(Phone)
 class PhoneAdmin(admin.ModelAdmin):
-    list_per_page = 150
-    list_display = ('number', 'location')
+    list_display = ('number', '_polyclinic')
     search_fields = ('number',)
+    fields = ('number', '_polyclinic')
+    readonly_fields = ('_polyclinic',)
 
     # def get_search_results(self, request, queryset, search_term):
     #     queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
@@ -122,29 +154,32 @@ class PhoneAdmin(admin.ModelAdmin):
     #             queryset = queryset.filter(polyclinic=polyclinic_id).order_by('-id')
     #     return queryset, may_have_duplicates
 
-    def location(self, obj):
-        polyclinics = Polyclinic.objects.filter(phone__number=obj.number).all()
-        if polyclinics:
-            text = ',<br>'.join([i.full_name for i in polyclinics])
-            return mark_safe(f'<span>{text}</span>')
-        else:
-            return '-'
-    location.short_description = _('Polyclinic')
+    def _polyclinic(self, obj):
+        if obj.id:
+            polyclinics = Polyclinic.objects.filter(phone__id=obj.id).values('name', 'address__name')
+            if polyclinics:
+                polyclinic_address = [f'{i["name"]} - {i["address__name"]}' for i in polyclinics]
+                text = ',<br>'.join(polyclinic_address)
+                return mark_safe(f'<span>{text}</span>')
+        return '-'
+    _polyclinic.short_description = _('Polyclinic')
 
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ('name', 'location')
+    list_display = ('name', '_polyclinic')
     search_fields = ('name',)
+    fields = ('name', '_polyclinic')
+    readonly_fields = ('_polyclinic',)
 
-    def location(self, obj):
-        polyclinics = Polyclinic.objects.filter(address__name=obj.name).all()
-        if polyclinics:
-            text = ',<br>'.join([i.name for i in polyclinics])
-            return mark_safe(f'<span>{text}</span>')
-        else:
-            return '-'
-    location.short_description = _('Polyclinic')
+    def _polyclinic(self, obj):
+        if obj.id:
+            polyclinics = Polyclinic.objects.filter(address__id=obj.id).values_list('name', flat=True)
+            if polyclinics:
+                text = ',<br>'.join(polyclinics)
+                return mark_safe(f'<span>{text}</span>')
+        return '-'
+    _polyclinic.short_description = _('Polyclinic')
 
 
 @admin.register(District)

@@ -1,13 +1,16 @@
+import logging
+import json
+from datetime import datetime
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.core.cache import cache
-import logging
-import json
+from django.db.models import Q
 from bot.misc import DotAccessibleDict
 from bot.tasks import send_message_to_new_user, send_message_specialities, \
     send_message_districts, send_message_doctor, send_message_clinic_or_private, \
-    send_message_polyclinic, send_message_before_searching, send_message_not_found
+    send_message_polyclinic, send_message_before_searching, send_message_not_found, \
+    send_message_not_found_share
 from bot.models import User, Doctor, Polyclinic, Speciality
 from bot import texts
 
@@ -50,6 +53,20 @@ def telegram_webhook(request):
                 cache.set(f'{message.from_user.id}_search_request', True, timeout=3600)
                 send_message_before_searching(message.from_user.id)
 
+            elif message.text == texts.share:
+                where = Q(
+                    ~Q(share__id=None) &
+                    # Q(share__start_date__lte=datetime.today().date()) &
+                    Q(share__end_date__gte=datetime.today().date())
+                )
+                polyclinics = Polyclinic.objects.filter(where).values('id', 'rating_share')
+                if polyclinics:
+                    polyclinics = sorted(polyclinics, key=lambda x: int(x['rating_share']) if x['rating_share'] else 10, reverse=True)
+                    polyclinics_id = [i['id'] for i in polyclinics]
+                    send_message_polyclinic.delay(message.from_user.id, None, polyclinics_id)
+                else:
+                    send_message_not_found_share.delay(id=message.from_user.id)
+
             elif search_request and len(message.text) >= 3:
                 logging.info(f'User {message.from_user.id} searching by speciality: {message.text}')
                 speciality_id = Speciality.objects.filter(name__icontains=message.text).values_list('id', flat=True)
@@ -77,31 +94,19 @@ def telegram_webhook(request):
                 district_id = int(district_id)
 
                 if clinic_or_private == 'private':
-                    result = []
-                    doctors = Doctor.objects.prefetch_related('district').filter(speciality=speciality_id).all()
+                    doctors = Doctor.objects.filter(district__id=district_id, speciality=speciality_id).values('id', 'rating_general')
                     if doctors:
-                        for doctor in doctors:
-                            if list(filter(lambda x: x == district_id, [i.id for i in doctor.district.all()])):
-                                result.append(doctor)
-
-                    if result:
-                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10, reverse=True)
-                        doctors_id = [i.id for i in result]
+                        doctors = sorted(doctors, key=lambda x: int(x['rating_general']) if x['rating_general'] else 10, reverse=True)
+                        doctors_id = [i['id'] for i in doctors]
                         send_message_doctor.delay(message.from_user.id, message.message.message_id, doctors_id)
                     else:
                         send_message_not_found(id=message.from_user.id)
 
                 elif clinic_or_private == 'clinic':
-                    result = []
-                    polyclinics = Polyclinic.objects.prefetch_related('speciality').filter(district__id=district_id).all()
+                    polyclinics = Polyclinic.objects.filter(speciality__id=speciality_id, district=district_id).values('id', 'rating_general')
                     if polyclinics:
-                        for polyclinic in polyclinics:
-                            if list(filter(lambda x: x == speciality_id, [i.id for i in polyclinic.speciality.all()])):
-                                result.append(polyclinic)
-
-                    if result:
-                        result = sorted(result, key=lambda x: int(x.rating) if x.rating else 10, reverse=True)
-                        polyclinics_id = [i.id for i in result]
+                        polyclinics = sorted(polyclinics, key=lambda x: int(x['rating_general']) if x['rating_general'] else 10, reverse=True)
+                        polyclinics_id = [i['id'] for i in polyclinics]
                         send_message_polyclinic.delay(message.from_user.id, message.message.message_id, polyclinics_id)
                     else:
                         send_message_not_found(id=message.from_user.id)
