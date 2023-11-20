@@ -10,8 +10,8 @@ from bot.misc import DotAccessibleDict
 from bot.tasks import send_message_to_new_user, send_message_specialities, \
     send_message_districts, send_message_doctor, send_message_clinic_or_private, \
     send_message_polyclinic, send_message_before_searching, send_message_not_found, \
-    send_message_not_found_share
-from bot.models import User, Doctor, Polyclinic, Speciality
+    send_message_not_found_share, send_message_share
+from bot.models import User, Doctor, Polyclinic, Speciality, Share
 from bot import texts
 
 
@@ -55,15 +55,14 @@ def telegram_webhook(request):
 
             elif message.text == texts.share:
                 where = Q(
-                    ~Q(share__id=None) &
-                    # Q(share__start_date__lte=datetime.today().date()) &
-                    Q(share__end_date__gte=datetime.today().date())
+                    # Q(start_date__lte=datetime.today().date()) &
+                    Q(end_date__gte=datetime.today().date())
                 )
-                polyclinics = Polyclinic.objects.filter(where).values('id', 'rating_share')
-                if polyclinics:
-                    polyclinics = sorted(polyclinics, key=lambda x: int(x['rating_share']) if x['rating_share'] else 10, reverse=True)
-                    polyclinics_id = [i['id'] for i in polyclinics]
-                    send_message_polyclinic.delay(message.from_user.id, None, polyclinics_id)
+                shares = Share.objects.filter(where).values('id', 'rating')
+                if shares:
+                    shares = sorted(shares, key=lambda x: int(x['rating']) if x['rating'] else 10, reverse=True)
+                    shares_id = [i['id'] for i in shares]
+                    send_message_share.delay(message.from_user.id, shares_id)
                 else:
                     send_message_not_found_share.delay(id=message.from_user.id)
 
@@ -94,18 +93,18 @@ def telegram_webhook(request):
                 district_id = int(district_id)
 
                 if clinic_or_private == 'private':
-                    doctors = Doctor.objects.filter(district__id=district_id, speciality=speciality_id).values('id', 'rating_general')
+                    doctors = Doctor.objects.filter(district__id=district_id, speciality=speciality_id).values('id', 'rating')
                     if doctors:
-                        doctors = sorted(doctors, key=lambda x: int(x['rating_general']) if x['rating_general'] else 10, reverse=True)
+                        doctors = sorted(doctors, key=lambda x: int(x['rating']) if x['rating'] else 10, reverse=True)
                         doctors_id = [i['id'] for i in doctors]
                         send_message_doctor.delay(message.from_user.id, message.message.message_id, doctors_id)
                     else:
                         send_message_not_found(id=message.from_user.id)
 
                 elif clinic_or_private == 'clinic':
-                    polyclinics = Polyclinic.objects.filter(speciality__id=speciality_id, district=district_id).values('id', 'rating_general')
+                    polyclinics = Polyclinic.objects.filter(speciality__id=speciality_id, district=district_id).values('id', 'rating')
                     if polyclinics:
-                        polyclinics = sorted(polyclinics, key=lambda x: int(x['rating_general']) if x['rating_general'] else 10, reverse=True)
+                        polyclinics = sorted(polyclinics, key=lambda x: int(x['rating']) if x['rating'] else 10, reverse=True)
                         polyclinics_id = [i['id'] for i in polyclinics]
                         send_message_polyclinic.delay(message.from_user.id, message.message.message_id, polyclinics_id)
                     else:

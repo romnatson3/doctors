@@ -19,32 +19,40 @@ class DoctorAdmin(admin.ModelAdmin):
     autocomplete_fields = ('polyclinic', 'district', 'schedule')
     list_display = ('id', 'last_name', 'first_name', 'paternal_name', 'phone',
                     'speciality', 'position', 'experience', 'cost',
-                    'rating_general', 'image_tag')
+                    'rating', 'image_tag')
     list_filter = (SpecialityFilter, 'district')
     search_fields = ('last_name', 'first_name', 'paternal_name')
-    fields = ('last_name', 'first_name', 'paternal_name', 'phone', 'rating_general',
+    fields = ('last_name', 'first_name', 'paternal_name', 'phone', 'rating',
               'image_tag', 'image', 'speciality', 'position', 'polyclinic', 'district',
               'schedule', 'experience', 'cost')
     readonly_fields = ('image_tag',)
     list_display_links = ('last_name', 'first_name', 'paternal_name')
+    actions = ('copy_action',)
 
     def image_tag(self, obj):
         return mark_safe(f'<img src="{obj.image.url}" width="50" height="50" />')
     image_tag.short_description = 'Photo'
 
     def save_model(self, request, obj, form, change):
-        if obj.rating_general:
-            doctors = Doctor.objects.filter(rating_general=obj.rating_general).all()
+        if obj.rating:
+            doctors = Doctor.objects.filter(rating=obj.rating).all()
             for i in doctors:
-                i.rating_general = None
+                i.rating = None
                 i.save()
         super().save_model(request, obj, form, change)
 
-
-@admin.register(Speciality)
-class SpecialityAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    def copy_action(self, request, queryset):
+        for obj in queryset:
+            previous_polyclinic = obj.polyclinic.all()
+            previous_district = obj.district.all()
+            previous_schedule = obj.schedule.all()
+            obj.id = None
+            obj.save()
+            obj.polyclinic.set(previous_polyclinic)
+            obj.district.set(previous_district)
+            obj.schedule.set(previous_schedule)
+        self.message_user(request, _('Selected records were copied successfully'))
+    copy_action.short_description = _('Copy chosen records')
 
 
 @admin.register(Polyclinic)
@@ -52,15 +60,12 @@ class PolyclinicAdmin(admin.ModelAdmin):
     form = PolyclinicForm
     list_per_page = 150
     list_filter = (SpecialityFilter, 'district')
-    autocomplete_fields = ('speciality', 'phone', 'address', 'share')
+    autocomplete_fields = ('speciality', 'phone', 'address')
     list_display = ('id', 'name', 'addresses', 'district', 'site', 'phones',
-                    'work_time', 'rating_general', 'rating_share', 'image_tag')
+                    'work_time', 'rating', 'image_tag')
     search_fields = ('name',)
-    fieldsets = (
-        (None, {'fields': ('name', 'address', 'site_url', 'phone', 'rating_general',
-                'image_tag', 'image', 'district', 'speciality', 'work_time_start', 'work_time_end',
-                'share', 'rating_share')}),
-    )
+    fields = ('name', 'address', 'site_url', 'phone', 'rating', 'image_tag',
+              'image', 'district', 'speciality', 'work_time_start', 'work_time_end')
     readonly_fields = ('image_tag',)
     list_display_links = ('name',)
     actions = ('copy_action',)
@@ -78,15 +83,10 @@ class PolyclinicAdmin(admin.ModelAdmin):
     phones.short_description = _('Phone numbers')
 
     def save_model(self, request, obj, form, change):
-        if obj.rating_share:
-            polyclinics = Polyclinic.objects.filter(rating_share=obj.rating_share).all()
+        if obj.rating:
+            polyclinics = Polyclinic.objects.filter(rating=obj.rating).all()
             for i in polyclinics:
-                i.rating_share = None
-                i.save()
-        if obj.rating_general:
-            polyclinics = Polyclinic.objects.filter(rating_general=obj.rating_general).all()
-            for i in polyclinics:
-                i.rating_general = None
+                i.rating = None
                 i.save()
         super().save_model(request, obj, form, change)
 
@@ -123,19 +123,22 @@ class PolyclinicAdmin(admin.ModelAdmin):
 class ShareAdmin(admin.ModelAdmin):
     form = ShareForm
     list_display_links = ('name',)
-    list_display = ('id', 'name', 'polyclinics', 'start_date', 'end_date', 'sum')
+    list_display = ('id', 'name', 'start_date', 'end_date', 'sum', 'rating', 'image_tag')
     search_fields = ('name',)
-    fields = ('name', 'description', 'start_date', 'end_date', 'sum', 'polyclinics')
-    readonly_fields = ('polyclinics',)
+    fields = ('name', 'description', 'start_date', 'end_date', 'sum', 'rating', 'image_tag', 'image')
+    readonly_fields = ('image_tag',)
 
-    def polyclinics(self, obj):
-        if obj.id:
-            polyclinics = Polyclinic.objects.filter(share__id=obj.id).values_list('name', flat=True)
-            if polyclinics:
-                text = ',<br>'.join(polyclinics)
-                return mark_safe(f'<span>{text}</span>')
-        return '-'
-    polyclinics.short_description = _('Polyclinics')
+    def save_model(self, request, obj, form, change):
+        if obj.rating:
+            shares = Share.objects.filter(rating=obj.rating).all()
+            for i in shares:
+                i.rating = None
+                i.save()
+        super().save_model(request, obj, form, change)
+
+    def image_tag(self, obj):
+        return mark_safe(f'<img src="{obj.image.url}" width="50" height="50" />')
+    image_tag.short_description = _('Photo')
 
 
 @admin.register(Phone)
@@ -198,3 +201,9 @@ class PositionAdmin(admin.ModelAdmin):
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = ('day_of_week', 'start_time', 'end_time', 'polyclinic')
     search_fields = ('day_of_week', 'start_time', 'end_time', 'polyclinic')
+
+
+@admin.register(Speciality)
+class SpecialityAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
