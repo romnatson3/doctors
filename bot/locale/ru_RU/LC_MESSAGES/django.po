@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-19 10:26+0000\n"
+"POT-Creation-Date: 2023-11-20 14:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,51 +21,43 @@ msgstr ""
 msgid "DOCTOR BOT"
 msgstr "Доктор Рядом Одесса"
 
-#: admin.py:70 models.py:51 models.py:172
+#: admin.py:61 admin.py:118 models.py:143 models.py:172 models.py:201
 msgid "Photo"
 msgstr "Фото"
 
-#: admin.py:78 models.py:87
+#: admin.py:69 models.py:57
 msgid "Phone numbers"
 msgstr "Номера телефонов"
 
-#: admin.py:93 models.py:50
+#: admin.py:84 models.py:142
 msgid "Site URL"
 msgstr "Сайт"
 
-#: admin.py:101 models.py:98
+#: admin.py:92 models.py:68
 msgid "Addresses"
 msgstr "Адреса"
 
-#: admin.py:113
+#: admin.py:104
 msgid "Selected records were copied successfully"
 msgstr "Выбранные записи были успешно скопированы"
 
-#: admin.py:114
+#: admin.py:105
 msgid "Copy chosen records"
 msgstr "Скопировать выбранные записи"
 
-#: admin.py:133 models.py:43
-msgid "Polyclinics"
-msgstr "Поликлиники"
-
-#: admin.py:160 admin.py:177 models.py:44 models.py:147 models.py:175
+#: admin.py:145 admin.py:162 models.py:117 models.py:136 models.py:175
 msgid "Polyclinic"
 msgstr "Поликлиника"
 
-#: filters.py:7 models.py:30 models.py:32 models.py:49 models.py:173
+#: filters.py:7 models.py:47 models.py:49 models.py:141 models.py:173
 msgid "Speciality"
 msgstr "Специальность"
 
-#: forms.py:18 models.py:56 models.py:73
-msgid "Share"
-msgstr "Акция"
-
-#: forms.py:40 models.py:132 models.py:179
+#: forms.py:29 models.py:102 models.py:179
 msgid "Schedule"
 msgstr "Расписание"
 
-#: forms.py:57 models.py:46 models.py:75 models.py:112 models.py:123
+#: forms.py:46 models.py:82 models.py:93 models.py:138 models.py:195
 msgid "Name"
 msgstr "Имя"
 
@@ -89,121 +81,133 @@ msgstr "Четвертое место"
 msgid "Fifth place"
 msgstr "Пятое место"
 
+#: models.py:28
+msgid "Users"
+msgstr ""
+
 #: models.py:29
-msgid "Specialities"
-msgstr "Специальности"
+msgid "User"
+msgstr ""
 
-#: models.py:47 models.py:99 models.py:101
-msgid "Address"
-msgstr "Адрес"
+#: models.py:31
+msgid "ID"
+msgstr ""
 
-#: models.py:48 models.py:88 models.py:171 models.py:199
+#: models.py:32
+msgid "Username"
+msgstr ""
+
+#: models.py:33 models.py:168
+msgid "First name"
+msgstr "Имя"
+
+#: models.py:34 models.py:169
+msgid "Last name"
+msgstr "Фамилия"
+
+#: models.py:35 models.py:58 models.py:140 models.py:171
 msgid "Phone number"
 msgstr "Номер телефона"
 
-#: models.py:52
-msgid "Work time start"
-msgstr "Время начала работы"
+#: models.py:36
+msgid "Is bot"
+msgstr ""
 
-#: models.py:53
-msgid "Work time end"
-msgstr "Время окончания работы"
+#: models.py:37
+msgid "Is deleted"
+msgstr ""
 
-#: models.py:54 models.py:110 models.py:176
-msgid "District"
-msgstr "Район"
+#: models.py:46
+msgid "Specialities"
+msgstr "Специальности"
 
-#: models.py:55
-msgid "General rating"
-msgstr "Общий рейтинг"
-
-#: models.py:57
-msgid "Share rating"
-msgstr "Рейтинг акции"
-
-#: models.py:59
-msgid "Work time"
-msgstr "Время работы"
-
-#: models.py:72
-msgid "Shares"
-msgstr "Акции"
-
-#: models.py:76
-msgid "Start date"
-msgstr "Дата начала"
-
-#: models.py:77
-msgid "End date"
-msgstr "Дата окончания"
-
-#: models.py:78
-msgid "Description"
-msgstr "Описание"
-
-#: models.py:79
-msgid "Sum"
-msgstr "Сумма"
-
-#: models.py:90
+#: models.py:60
 msgid "Number"
 msgstr "Номер"
 
-#: models.py:109
+#: models.py:69 models.py:71 models.py:139
+msgid "Address"
+msgstr "Адрес"
+
+#: models.py:79
 msgid "Districts"
 msgstr "Районы"
 
-#: models.py:120
+#: models.py:80 models.py:146 models.py:176
+msgid "District"
+msgstr "Район"
+
+#: models.py:90
 msgid "Positions"
 msgstr "Специализации"
 
-#: models.py:121 models.py:174
+#: models.py:91 models.py:174
 msgid "Position"
 msgstr "Специализация"
 
-#: models.py:131
+#: models.py:101
 msgid "Schedules"
 msgstr "Расписания"
 
-#: models.py:135
+#: models.py:105
 msgid "Monday"
 msgstr "Понедельник"
 
-#: models.py:136
+#: models.py:106
 msgid "Tuesday"
 msgstr "Вторник"
 
-#: models.py:137
+#: models.py:107
 msgid "Wednesday"
 msgstr "Среда"
 
-#: models.py:138
+#: models.py:108
 msgid "Thursday"
 msgstr "Четверг"
 
-#: models.py:139
+#: models.py:109
 msgid "Friday"
 msgstr "Пятница"
 
-#: models.py:140
+#: models.py:110
 msgid "Saturday"
 msgstr "Суббота"
 
-#: models.py:141
+#: models.py:111
 msgid "Sunday"
 msgstr "Воскресенье"
 
-#: models.py:144
+#: models.py:114
 msgid "Day of week"
 msgstr "День недели"
 
-#: models.py:145
+#: models.py:115
 msgid "Start time"
 msgstr "Время начала"
 
-#: models.py:146
+#: models.py:116
 msgid "End time"
 msgstr "Время окончания"
+
+#: models.py:135
+msgid "Polyclinics"
+msgstr "Поликлиники"
+
+#: models.py:144
+msgid "Work time start"
+msgstr "Время начала работы"
+
+#: models.py:145
+msgid "Work time end"
+msgstr "Время окончания работы"
+
+#: models.py:147 models.py:180 models.py:200
+msgid "Rating"
+msgstr "Рейтинг"
+
+#: models.py:149
+msgid "Work time"
+msgstr "Время работы"
 
 #: models.py:165
 msgid "Doctors"
@@ -212,14 +216,6 @@ msgstr "Врачи"
 #: models.py:166
 msgid "Doctor"
 msgstr "Врач"
-
-#: models.py:168 models.py:197
-msgid "First name"
-msgstr "Имя"
-
-#: models.py:169 models.py:198
-msgid "Last name"
-msgstr "Фамилия"
 
 #: models.py:170
 msgid "Paternal name"
@@ -233,30 +229,26 @@ msgstr "Опыт"
 msgid "Cost"
 msgstr "Стоимость"
 
-#: models.py:180
-msgid "Rating"
-msgstr "Рейтинг"
-
 #: models.py:192
-msgid "Users"
-msgstr ""
+msgid "Shares"
+msgstr "Акции"
 
 #: models.py:193
-msgid "User"
-msgstr ""
-
-#: models.py:195
-msgid "ID"
-msgstr ""
+msgid "Share"
+msgstr "Акция"
 
 #: models.py:196
-msgid "Username"
-msgstr ""
+msgid "Start date"
+msgstr "Дата начала"
 
-#: models.py:200
-msgid "Is bot"
-msgstr ""
+#: models.py:197
+msgid "End date"
+msgstr "Дата окончания"
 
-#: models.py:201
-msgid "Is deleted"
-msgstr ""
+#: models.py:198
+msgid "Description"
+msgstr "Описание"
+
+#: models.py:199
+msgid "Sum"
+msgstr "Сумма"

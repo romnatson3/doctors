@@ -6,7 +6,7 @@ from django.db.models import CharField, Value, F, Q
 from app.celery import app
 from bot.misc import send_message, batched
 from bot import texts
-from bot.models import Speciality, District, Doctor, Polyclinic
+from bot.models import Speciality, District, Doctor, Polyclinic, Share
 
 
 logger = get_task_logger(__name__)
@@ -118,11 +118,17 @@ def send_message_doctor(id, message_id, doctors_id):
     doctors.sort(key=lambda x: doctors_id.index(x.id))
     for doctor in doctors:
         full_name = f'<b>{doctor.full_name}\n</b>'
-        speciality = f'{doctor.speciality._meta.verbose_name}: <i>{doctor.speciality.name}\n</i>'
-        position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
+        if doctor.speciality:
+            speciality = f'{doctor.speciality._meta.verbose_name}: <i>{doctor.speciality.name}\n</i>'
+        else:
+            speciality = ''
+        if doctor.position:
+            position = f'{doctor.position._meta.verbose_name}: <i>{doctor.position.name}\n</i>'
+        else:
+            position = ''
         polyclinics = f'{doctor.polyclinic.model._meta.verbose_name_plural}:\n'
         for i in doctor.polyclinic.all():
-            polyclinics += f'<i>{i.name}</i>\n'
+            polyclinics += f'<i>{i}</i>\n'
         experience = f'{doctor._meta.get_field("experience").verbose_name}: <i>{doctor.experience} лет</i>\n'
         cost = f'{doctor._meta.get_field("cost").verbose_name}: <i>{doctor.cost} грн.</i>\n'
         schedules = f'{doctor.schedule.model._meta.verbose_name}:\n'
@@ -139,7 +145,7 @@ def send_message_polyclinic(id, message_id, polyclinics_id):
     if message_id:
         send_message('deleteMessage', chat_id=id, message_id=message_id)
     polyclinics = list(Polyclinic.objects.select_related('district')
-                       .prefetch_related('phone', 'speciality', 'address', 'share')
+                       .prefetch_related('phone', 'speciality', 'address')
                        .filter(id__in=polyclinics_id).all())
     polyclinics.sort(key=lambda x: polyclinics_id.index(x.id))
     for polyclinic in polyclinics:
@@ -153,13 +159,24 @@ def send_message_polyclinic(id, message_id, polyclinics_id):
         url = polyclinic.site_url if polyclinic.site_url else ''
         site = f'{polyclinic._meta.get_field("site_url").verbose_name}: <a href="{url}">{url}</a>\n'
         work_time = f'{polyclinic.work_time.short_description}: <i>{polyclinic.work_time()}</i>\n'
-        if polyclinic.share.exists():
-            share = f'{polyclinic.share.model._meta.verbose_name_plural}:\n'
-            for i in polyclinic.share.all():
-                share += f'<i>{i}</i>\n'
-                share += f'{i.description}\n'
-        else:
-            share = ''
-        caption = name + addresses + site + work_time + phones + share
+        caption = name + addresses + site + work_time + phones
         send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=polyclinic.image.path)
         logger.info(f'Send message about polyclinic to {id=} successfully')
+
+
+@app.task()
+def send_message_share(id, shares_id):
+    shares = list(Share.objects.filter(id__in=shares_id).all())
+    shares.sort(key=lambda x: shares_id.index(x.id))
+    for share in shares:
+        name = f'<b>{share.name}\n</b>'
+        start_date = f'{share._meta.get_field("start_date").verbose_name}: <i>{share.start_date:%d.%m.%Y}</i>\n'
+        end_date = f'{share._meta.get_field("end_date").verbose_name}: <i>{share.end_date:%d.%m.%Y}</i>\n'
+        description = f'{share.description}\n'
+        if share.sum:
+            sum = f'{share._meta.get_field("sum").verbose_name}: <i>{share.sum} грн.</i>\n'
+        else:
+            sum = ''
+        caption = name + description + start_date + end_date + sum
+        send_message('sendPhoto', chat_id=id, parse_mode='HTML', caption=caption, photo=share.image.path)
+        logger.info(f'Send message about share to {id=} successfully')

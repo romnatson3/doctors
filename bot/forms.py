@@ -14,17 +14,6 @@ class PolyclinicForm(forms.ModelForm):
         # self.fields['address'].queryset = queryset
         # self.fields['speciality'].widget.can_add_related = False
 
-    share = forms.ModelMultipleChoiceField(
-        label=_('Share'),
-        queryset=Share.objects.all(),
-        required=False,
-        widget=AutocompleteSelectMultiple(
-            Polyclinic.share.field,
-            admin.site,
-            attrs={'style': 'width: 700px'}
-        )
-    )
-
     class Meta:
         model = Polyclinic
         fields = '__all__'
@@ -33,7 +22,7 @@ class PolyclinicForm(forms.ModelForm):
 class DoctorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['rating_general'].empty_label = None
+        self.fields['rating'].empty_label = None
         self.fields['polyclinic'].required = False
 
     schedule = forms.ModelMultipleChoiceField(
@@ -42,6 +31,17 @@ class DoctorForm(forms.ModelForm):
         required=True,
         widget=AutocompleteSelectMultiple(
             Doctor.schedule.field,
+            admin.site,
+            attrs={'style': 'width: 700px'}
+        )
+    )
+
+    polyclinic = forms.ModelMultipleChoiceField(
+        label=_('Polyclinic'),
+        queryset=Polyclinic.objects.all(),
+        required=True,
+        widget=AutocompleteSelectMultiple(
+            Doctor.polyclinic.field,
             admin.site,
             attrs={'style': 'width: 700px'}
         )
