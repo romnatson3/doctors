@@ -15,7 +15,7 @@ admin.site.index_title = _('DOCTOR BOT')
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
     form = DoctorForm
-    list_per_page = 150
+    list_per_page = 50
     autocomplete_fields = ('polyclinic', 'district', 'schedule')
     list_display = ('id', 'last_name', 'first_name', 'paternal_name', 'phone',
                     'speciality', 'position', 'experience', 'cost',
@@ -58,7 +58,7 @@ class DoctorAdmin(admin.ModelAdmin):
 @admin.register(Polyclinic)
 class PolyclinicAdmin(admin.ModelAdmin):
     form = PolyclinicForm
-    list_per_page = 150
+    list_per_page = 50
     list_filter = (SpecialityFilter, 'district')
     autocomplete_fields = ('speciality', 'phone', 'address')
     list_display = ('id', 'name', 'addresses', 'district', 'site', 'phones',

@@ -160,7 +160,7 @@ TELEGRAM_CHANNEL_ID = os.environ.get('TELEGRAM_CHANNEL_ID')
 X_TELEGRAM_BOT_API_SECRET_TOKEN = os.environ.get('X_TELEGRAM_BOT_API_SECRET_TOKEN')
 APP_API_ID = os.environ.get('APP_API_ID')
 APP_API_HASH = os.environ.get('APP_API_HASH')
-CHANNEL_URL = 'https://t.me/+WiomAZm44N0yZTNi'
+CHANNEL_URL = 'https://t.me/vsezdesodessa'
 
 LOGGING = {
     'version': 1,
