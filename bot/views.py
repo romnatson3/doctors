@@ -10,9 +10,20 @@ from bot.misc import DotAccessibleDict
 from bot.tasks import send_message_to_new_user, send_message_specialities, \
     send_message_districts, send_message_doctor, send_message_clinic_or_private, \
     send_message_polyclinic, send_message_before_searching, send_message_not_found, \
-    send_message_not_found_share, send_message_share
+    send_message_not_found_share, send_message_share, send_message_approve
 from bot.models import User, Doctor, Polyclinic, Speciality, Share
 from bot import texts
+
+
+def create_new_user(from_user):
+    if not User.objects.filter(id=from_user.id).exists():
+        user = User.objects.create(
+            id=from_user.id,
+            username=from_user.username if from_user.username else None,
+            first_name=from_user.first_name if from_user.first_name else None,
+            last_name=from_user.last_name if from_user.last_name else None,
+        )
+        logging.info(f'Create new user: {user.id} {user.username} {user.first_name} {user.last_name}')
 
 
 @csrf_exempt
@@ -29,6 +40,14 @@ def telegram_webhook(request):
 
         # return HttpResponse(status=200)
 
+        if body.chat_join_request:
+            request = body.chat_join_request
+            # create_new_user(request.from_user)
+            logging.info(f'Incoming chat join request from: {request.from_user.id} {request.from_user.username}')
+            logging.info(f'Chat: {request.chat.id} {request.chat.title}, invite link: {request.invite_link.invite_link}')
+            # send_message_approve.delay(request.from_user.id, request.chat.id)
+            # send_message_to_new_user.delay(request.from_user.id)
+
         if body.message.text:
             message = body.message
             logging.info(f'Incoming message from: {message.from_user.id} {message.from_user.username}, {message.text}')
@@ -36,14 +55,7 @@ def telegram_webhook(request):
             search_request = cache.get(f'{message.from_user.id}_search_request')
 
             if message.text == '/start':
-                if not User.objects.filter(id=message.from_user.id).exists():
-                    user = User.objects.create(
-                        id=message.from_user.id,
-                        username=message.from_user.username if message.from_user.username else None,
-                        first_name=message.from_user.first_name if message.from_user.first_name else None,
-                        last_name=message.from_user.last_name if message.from_user.last_name else None,
-                    )
-                    logging.info(f'Create new user: {user.id} {user.username} {user.first_name} {user.last_name}')
+                create_new_user(message.from_user)
                 send_message_to_new_user.delay(message.from_user.id)
 
             elif message.text == texts.my_doctor_button:

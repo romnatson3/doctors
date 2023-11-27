@@ -6,3 +6,6 @@ readme.txt
 celerybeat-schedule
 test.py
 media/
+.env
+private.key
+public.pem

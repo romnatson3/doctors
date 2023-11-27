@@ -14,6 +14,12 @@ logger.setLevel(logging.INFO)
 
 
 @app.task()
+def send_message_approve(user_id, chat_id):
+    send_message('approveChatJoinRequest', user_id=user_id, chat_id=chat_id)
+    logger.info(f'Send message approve to {user_id=} successfully')
+
+
+@app.task()
 def send_message_to_new_user(id):
     text = f'{texts.start}'
     reply_markup = json.dumps(
@@ -92,7 +98,7 @@ def send_message_clinic_or_private(id, message_id, previous_callback_data):
 
 @app.task()
 def send_message_districts(id, message_id, previous_callback_data):
-    specialities = District.objects.annotate(
+    districts = District.objects.annotate(
         text=F('name'),
         callback_data=Concat(
             Value('{"type":"district","data":"'),
@@ -102,7 +108,7 @@ def send_message_districts(id, message_id, previous_callback_data):
         )
     ).values('text', 'callback_data')
     text = f'<b>{texts.district}</b>'
-    inline_keyboard = batched(specialities, 3)
+    inline_keyboard = batched(districts, 3)
     reply_markup = json.dumps({'inline_keyboard': inline_keyboard})
     send_message('editMessageText', chat_id=id, message_id=message_id, reply_markup=reply_markup, text=text, parse_mode='HTML')
     logger.info(f'Send message about districts to {id=} successfully')
